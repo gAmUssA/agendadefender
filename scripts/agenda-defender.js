@@ -1,4 +1,3 @@
-
 function AgendaItem(timePart1, timePart2, text) {
     this.timePart1 = timePart1;
     this.timePart2 = timePart2;
@@ -128,32 +127,43 @@ function runMeeting() {
     var agenda = Agenda.parse(agendaString);
     var $ticker = $("#ticker");
     $ticker.html('');
-    var tickerHeight = $ticker.height();
-    var elementHeight = Math.floor(tickerHeight / agenda.length);
+    
     agenda.forEach(function (item, index, array) {
         $div = $("<div class='agenda-item' />");
         $span = $("<span class='agenda-item-text' />")
         $span.text(item.text);
-        var fontSize = (elementHeight / 3);
-        if (fontSize > 200) fontSize = 200;
+        
+        // Calculate font size based on viewport height and number of items
+        var viewportHeight = window.innerHeight;
+        var fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
         $span.css("font-size", fontSize + "px");
-        var itemHeight = (elementHeight - 6) + "px";
-        $div.css("height", itemHeight);
-        $div.css("line-height", itemHeight);
+        $span.css("line-height", (fontSize * 1.2) + "px");
+        
         $div.append($span);
-        console.debug(item.text);
+        
         $progressBar = $("<div class='progress-bar' />");
-        if (item.color) $progressBar.css("color", item.color);
+        if (item.color) $progressBar.css("background-color", item.color);
+        
         item.element = $div;
         item.progressBar = $progressBar;
         $div.append($progressBar);
         $ticker.append($div);
-
     });
+    
     $("#ticker").show();
     $("a#close-ticker").show();
     window.ticker = window.setInterval(makeTicker(agenda), 10);
     window.running = true;
+    
+    // Add resize handler to adjust font size when window is resized
+    $(window).on('resize.agendaDefender', function() {
+        var viewportHeight = window.innerHeight;
+        var fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
+        $('.agenda-item-text').css({
+            "font-size": fontSize + "px",
+            "line-height": (fontSize * 1.2) + "px"
+        });
+    });
 }
 
 function makeTicker(agenda) {
@@ -177,10 +187,13 @@ function makeTicker(agenda) {
 
 function stopMeeting() {
     window.clearInterval(window.ticker);
-    $("a#close-ticker").hide();
-    $("#ticker").hide();
     window.running = false;
+    $("#ticker").hide();
+    $("a#close-ticker").hide();
+    // Remove resize handler
+    $(window).off('resize.agendaDefender');
 }
+
 $(function () {
     // if (!loadUrlHash()) 
     drawSampleAgenda();
