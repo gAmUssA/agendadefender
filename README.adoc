@@ -1,0 +1,115 @@
+= Agenda Defender
+:toc: left
+:icons: font
+:source-highlighter: highlight.js
+
+A meeting agenda timer application that helps you keep your meetings on track.
+
+== Web Application Setup
+
+=== Python Setup
+
+[source,bash]
+----
+# Install uv (if not already installed)
+pip install uv
+
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+# or
+.venv\Scripts\activate  # On Windows
+
+# Install dependencies
+uv pip install -r requirements.txt
+----
+
+=== Running the Web Application
+
+[source,bash]
+----
+# Start the server
+python server.py
+
+# Open your browser and navigate to:
+http://localhost:8080
+----
+
+== Desktop Application Setup
+
+=== Prerequisites
+
+* Node.js (v16 or later)
+* npm (comes with Node.js)
+
+=== Development Setup
+
+[source,bash]
+----
+# Install dependencies
+npm install
+
+# Start the application in development mode
+npm start
+----
+
+=== Building the Desktop Application
+
+[source,bash]
+----
+# Build for all platforms
+npm run build
+
+# Build for specific platforms
+npm run build -- --mac    # macOS
+npm run build -- --win    # Windows
+npm run build -- --linux  # Linux
+----
+
+The built applications will be available in the `dist` directory.
+
+=== Build Output
+
+[cols="1,1"]
+|===
+|Platform |Output
+
+|macOS
+|`dist/Agenda Defender-{version}.dmg`
+
+|Windows
+|`dist/Agenda Defender Setup-{version}.exe`
+
+|Linux
+|`dist/agenda-defender-{version}.AppImage`
+|===
+
+== Development
+
+=== Web Application
+The application uses Flask for the development server. The server will automatically reload when you make changes to the Python files.
+
+=== Desktop Application
+The application is built using Electron, allowing it to run as a native desktop application across different platforms.
+
+== Project Structure
+
+[source]
+----
+agenda-defender/
+├── index.html           # Main application HTML
+├── main.js             # Electron main process
+├── package.json        # Node.js dependencies and scripts
+├── requirements.txt    # Python dependencies
+├── server.py          # Development web server
+├── scripts/           # JavaScript files
+└── styles/           # CSS files
+----
+
+== Credits
+
+Created by https://dylanbeattie.net/2019/12/02/better-meetings-with-agenda-defender.html[@dylanbeattie^]
+
+== License
+
+MIT License
