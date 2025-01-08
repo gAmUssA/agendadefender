@@ -1,6 +1,6 @@
 {
   "name": "agenda-defender",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A meeting agenda timer application",
   "main": "main.js",
   "scripts": {
