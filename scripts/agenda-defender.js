@@ -194,7 +194,86 @@ function stopMeeting() {
     $(window).off('resize.agendaDefender');
 }
 
+// Theme management
+const ThemeManager = {
+    THEMES: {
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system'
+    },
+
+    getCurrentTheme() {
+        const theme = document.documentElement.getAttribute('data-theme') || this.THEMES.SYSTEM;
+        console.log('Current theme:', theme);
+        return theme;
+    },
+
+    setTheme(theme) {
+        console.log('Setting theme to:', theme);
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        this.applyTheme(theme);
+    },
+
+    applyTheme(theme) {
+        console.log('Applying theme:', theme);
+        if (theme === this.THEMES.SYSTEM) {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            console.log('System prefers dark:', prefersDark);
+            document.documentElement.classList.toggle('dark-theme', prefersDark);
+        } else {
+            document.documentElement.classList.toggle('dark-theme', theme === this.THEMES.DARK);
+        }
+    },
+
+    initialize() {
+        console.log('Initializing theme manager');
+        const savedTheme = localStorage.getItem('theme') || this.THEMES.SYSTEM;
+        console.log('Saved theme:', savedTheme);
+        this.setTheme(savedTheme);
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            console.log('System theme changed, prefers dark:', e.matches);
+            if (this.getCurrentTheme() === this.THEMES.SYSTEM) {
+                this.applyTheme(this.THEMES.SYSTEM);
+            }
+        });
+
+        // Setup theme toggle button
+        const themeToggle = document.getElementById('theme-toggle');
+        console.log('Theme toggle button:', themeToggle);
+        if (!themeToggle) {
+            console.error('Theme toggle button not found!');
+            return;
+        }
+
+        themeToggle.addEventListener('click', () => {
+            console.log('Theme toggle clicked');
+            const currentTheme = this.getCurrentTheme();
+            let newTheme;
+            
+            switch (currentTheme) {
+                case this.THEMES.LIGHT:
+                    newTheme = this.THEMES.DARK;
+                    break;
+                case this.THEMES.DARK:
+                    newTheme = this.THEMES.SYSTEM;
+                    break;
+                default:
+                    newTheme = this.THEMES.LIGHT;
+            }
+            
+            console.log('Switching from', currentTheme, 'to', newTheme);
+            this.setTheme(newTheme);
+        });
+    }
+};
+
 $(function () {
+    // Initialize theme manager
+    ThemeManager.initialize();
+    
     // if (!loadUrlHash()) 
     drawSampleAgenda();
     window.addEventListener("resize", function () {
