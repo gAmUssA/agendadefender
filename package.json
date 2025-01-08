@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "clean": "rm -rf dist/ .electron-builder/ node_modules/.cache/",
+    "rebuild": "npm run clean && npm run build"
   },
   "author": "Dylan Beattie",
   "license": "MIT",
@@ -15,14 +17,46 @@
   },
   "build": {
     "appId": "com.agendadefender.app",
+    "productName": "Agenda Defender",
+    "directories": {
+      "output": "dist"
+    },
     "mac": {
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "icon": "icon/agenda-defender.icns",
+      "darkModeSupport": true,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "artifactName": "${productName}.${ext}"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "icon/agenda-defender.ico",
+      "artifactName": "${productName} Setup.${ext}"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "icon": "icon/agenda-defender.png",
+      "artifactName": "${productName}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "${productName}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "installerIcon": "icon/agenda-defender.ico",
+      "uninstallerIcon": "icon/agenda-defender.ico",
+      "uninstallDisplayName": "${productName}",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }

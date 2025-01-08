@@ -10,7 +10,8 @@ function createWindow() {
       contextIsolation: false
     },
     titleBarStyle: 'hidden',
-    trafficLightPosition: { x: 20, y: 20 }
+    trafficLightPosition: { x: 20, y: 20 },
+    icon: path.join(__dirname, 'icon', process.platform === 'win32' ? 'agenda-defender.ico' : 'agenda-defender.png')
   });
 
   // Load the local HTML file
