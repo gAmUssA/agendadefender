@@ -8,14 +8,15 @@ html {
 
 body {
     margin: 0;
-    padding: 16px;
+    padding: 38px 16px 16px 16px;
     box-sizing: border-box;
     height: 100vh;
+    -webkit-user-select: none;
 }
 
 div#textarea-wrapper {
     position: absolute;
-    top: 16px;
+    top: 38px;
     left: 16px;
     bottom: 120px;
     right: 16px;
@@ -117,6 +118,8 @@ textarea#agenda {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     resize: none;
     transition: box-shadow 0.2s;
+    -webkit-user-select: text;
+    -webkit-app-region: no-drag;
 }
 
 textarea#agenda:focus {
@@ -191,11 +194,44 @@ a#close-ticker {
     opacity: 0.8;
     transition: opacity 0.2s, transform 0.2s;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    -webkit-user-select: text;
+    -webkit-app-region: no-drag;
 }
 
 a#close-ticker:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+.titlebar {
+    height: 38px;
+    background: transparent;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+/* Make the app feel more native */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {
