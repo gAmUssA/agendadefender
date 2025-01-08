@@ -92,6 +92,54 @@ The application uses Flask for the development server. The server will automatic
 === Desktop Application
 The application is built using Electron, allowing it to run as a native desktop application across different platforms.
 
+=== CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment:
+
+==== Automated Builds
+
+* Triggered automatically on:
+** Pushes to the `main` branch
+** Creating version tags (e.g., `v1.0.0`)
+
+==== Build Artifacts
+
+* Every push to `main` will:
+** Build the application for all platforms (macOS, Windows, Linux)
+** Upload build artifacts to the GitHub Actions run
+** You can download and test these artifacts from the Actions tab
+
+==== Creating Releases
+
+* Creating a version tag (e.g., `v1.0.0`) will:
+** Build the application for all platforms
+** Create a GitHub release
+** Upload the built binaries to the release
+** Generate release notes
+
+To manually create a release:
+
+[source,bash]
+----
+# Update version and create tag
+npm version patch  # or minor/major
+# This will automatically:
+# 1. Update package.json version
+# 2. Create a git tag
+# 3. Push changes and tag to GitHub
+# 4. Trigger the release workflow
+----
+
+To create a test build without releasing:
+
+[source,bash]
+----
+# Just push to main branch
+git push origin main
+
+# Check the Actions tab on GitHub for build artifacts
+----
+
 == Project Structure
 
 [source]
