@@ -113,3 +113,189 @@ Created by https://dylanbeattie.net/2019/12/02/better-meetings-with-agenda-defen
 == License
 
 MIT License
+
+== Features
+
+* Simple, clean interface for managing meeting agendas
+* Real-time countdown timer
+* Light and dark theme support with system preference detection
+* Cross-platform support (macOS, Windows, Linux)
+* Native application experience
+
+== Installation
+
+=== Download Pre-built Binaries
+
+Visit the https://github.com/dylanbeattie/agendadefender/releases[releases page] to download the latest version for your platform:
+
+* *macOS*: Download `Agenda Defender.dmg` or `Agenda Defender.zip`
+* *Windows*: Download `Agenda Defender Setup.exe`
+* *Linux*: Download `Agenda Defender.AppImage`
+
+=== Building from Source
+
+==== Prerequisites
+
+* Node.js 18 or later
+* npm (comes with Node.js)
+* Git
+
+==== Development Setup
+
+1. Clone the repository:
++
+[source,bash]
+----
+git clone https://github.com/dylanbeattie/agendadefender.git
+cd agendadefender
+----
+
+2. Install dependencies:
++
+[source,bash]
+----
+npm install
+----
+
+3. Start the development server:
++
+[source,bash]
+----
+npm start
+----
+
+==== Building the Application
+
+To build the application for your current platform:
+
+[source,bash]
+----
+npm run build
+----
+
+To clean the build directory:
+
+[source,bash]
+----
+npm run clean
+----
+
+To perform a clean build:
+
+[source,bash]
+----
+npm run rebuild
+----
+
+=== Platform-Specific Build Instructions
+
+==== macOS
+
+1. Ensure you have Xcode Command Line Tools installed:
++
+[source,bash]
+----
+xcode-select --install
+----
+
+2. Generate the icon set:
++
+[source,bash]
+----
+cd icon
+chmod +x convert-icons.sh
+./convert-icons.sh
+----
+
+3. Build the application:
++
+[source,bash]
+----
+npm run build
+----
+
+The built application will be in `dist/mac`.
+
+==== Windows
+
+1. Build the application:
++
+[source,bash]
+----
+npm run build
+----
+
+The installer will be in `dist/win-unpacked`.
+
+==== Linux
+
+1. Install required dependencies (Ubuntu/Debian):
++
+[source,bash]
+----
+sudo apt-get install -y libxss-dev libgconf2-4
+----
+
+2. Build the application:
++
+[source,bash]
+----
+npm run build
+----
+
+The AppImage will be in `dist/`.
+
+== Creating a Release
+
+1. Update the version number:
++
+[source,bash]
+----
+npm version patch  # for bug fixes (1.0.0 -> 1.0.1)
+# or
+npm version minor  # for new features (1.0.0 -> 1.1.0)
+# or
+npm version major  # for breaking changes (1.0.0 -> 2.0.0)
+----
+
+2. The release process will automatically:
+* Push changes to GitHub
+* Create a new tag
+* Trigger GitHub Actions to:
+** Build the application for all platforms
+** Create a GitHub release
+** Upload the built binaries
+
+== Development
+
+=== Project Structure
+
+[source]
+----
+.
+├── icon/                   # Application icons
+├── scripts/               # JavaScript files
+├── styles/               # CSS styles
+├── .github/              # GitHub Actions workflows
+├── index.html           # Main HTML file
+├── main.js             # Electron main process
+└── package.json        # Project configuration
+----
+
+=== Theme Support
+
+The application supports three theme modes:
+
+* Light theme
+* Dark theme
+* System theme (automatically matches system preferences)
+
+Theme can be toggled using the moon/sun icon (🌓) in the top-right corner.
+
+== Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
