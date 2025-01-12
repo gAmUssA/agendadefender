@@ -310,13 +310,25 @@ a#close-ticker:hover {
 /* Mobile-specific styles */
 @media (max-width: 768px) {
     body {
-        position: fixed;
+        position: relative;
         width: 100%;
-        height: 100%;
-        overflow: hidden;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for iOS */
+        margin: 0;
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         -webkit-text-size-adjust: none;
         font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+    }
+
+    div#textarea-wrapper {
+        flex: 1;
+        position: relative;
+        width: 100%;
+        min-height: 0;
+        padding: 16px;
+        box-sizing: border-box;
     }
 
     textarea#agenda {
@@ -328,16 +340,16 @@ a#close-ticker:hover {
         background: var(--textarea-bg);
         border: none;
         color: var(--text-color);
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
         resize: none;
-        height: calc(100% - 40px);
-        margin-bottom: 16px;
+        margin: 0;
     }
 
     div#controls-wrapper {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        position: relative;
+        width: 100%;
         background: var(--controls-bg);
         padding: 20px 16px max(20px, env(safe-area-inset-bottom));
         display: flex;
@@ -347,6 +359,7 @@ a#close-ticker:hover {
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border-top: 1px solid rgba(140, 140, 140, 0.2);
+        box-sizing: border-box;
     }
 
     div#controls-wrapper input#run-meeting-button {
