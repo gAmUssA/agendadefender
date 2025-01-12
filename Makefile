@@ -26,6 +26,7 @@ help:
 	@echo "  $(YELLOW)make dev$(RESET)        🔧 Run Electron app in development mode"
 	@echo "  $(YELLOW)make build$(RESET)      📦 Build Electron app for distribution"
 	@echo "  $(YELLOW)make clean$(RESET)      🧹 Clean up build artifacts"
+	@echo "  $(YELLOW)make deploy$(RESET)     🚀 Deploy to GitHub Pages"
 	@echo "  $(YELLOW)make help$(RESET)       📚 Show this help message"
 
 # Setup virtual environment and install dependencies
@@ -67,6 +68,13 @@ build: $(NODE_MODULES)
 	@npm run build
 	@echo "$(GREEN)✅ Build completed! Check the $(BOLD)dist/$(RESET)$(GREEN) directory for the packaged app.$(RESET)"
 
+# Deploy target
+.PHONY: deploy
+deploy:
+	@echo "$(BLUE)🚀 Deploying to GitHub Pages...$(RESET)"
+	@echo "$(GREEN)✨ Deployment will be available at https://timemytalk.app$(RESET)"
+	@git push origin master
+
 # Clean target
 .PHONY: clean
 clean:
@@ -75,4 +83,4 @@ clean:
 	@echo "$(GREEN)✨ Cleanup complete!$(RESET)"
 
 # Prevent errors if files exist with target names
-.PHONY: help setup web dev build clean
+.PHONY: help setup web dev build clean deploy
