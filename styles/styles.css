@@ -5,7 +5,7 @@
     --text-color: #000000;
     --text-secondary: #6D6D72;
     --textarea-bg: #FFFFFF;
-    --controls-bg: rgba(255, 255, 255, 0.85);
+    --controls-bg: rgba(242, 242, 247, 0.85);
     --link-color: rgb(0, 122, 255);
     --button-bg: #34C759;
     --button-text: #FFFFFF;
@@ -277,6 +277,31 @@ a#close-ticker:hover {
     z-index: 1000;
 }
 
+/* Theme toggle button - base styles */
+#theme-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    font-size: 20px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    z-index: 1000;
+    cursor: pointer;
+    color: var(--text-color);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s ease;
+}
+
+#theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+#theme-toggle:active {
+    transform: scale(0.95);
+}
+
 /* Make the app feel more native */
 ::-webkit-scrollbar {
     width: 8px;
@@ -302,7 +327,7 @@ a#close-ticker:hover {
         position: relative;
         width: 100%;
         height: 100vh;
-        height: 100dvh; /* Dynamic viewport height for iOS */
+        height: 100dvh;
         margin: 0;
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         -webkit-text-size-adjust: none;
@@ -341,14 +366,14 @@ a#close-ticker:hover {
         position: relative;
         width: 100%;
         background: var(--controls-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border-color);
         padding: 20px 16px max(20px, env(safe-area-inset-bottom));
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 16px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-top: 1px solid var(--border-color);
         box-sizing: border-box;
     }
 
@@ -416,18 +441,8 @@ a#close-ticker:hover {
     }
 
     #theme-toggle {
-        position: fixed;
         top: max(10px, env(safe-area-inset-top));
         right: max(10px, env(safe-area-inset-right));
-        font-size: 20px;
-        padding: 8px;
-        background: transparent;
-        border: none;
-        border-radius: 50%;
-        z-index: 1000;
-        cursor: pointer;
-        color: var(--text-color);
-        -webkit-tap-highlight-color: transparent;
     }
 }
 
