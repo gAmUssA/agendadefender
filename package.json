@@ -29,7 +29,7 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "icon/agenda-defender.icns",
+      "icon": "icon/agenda-defender.png",
       "darkModeSupport": true,
       "target": [
         {
@@ -44,7 +44,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "icon/agenda-defender.ico",
+      "icon": "icon/agenda-defender.png",
       "artifactName": "${productName} Setup.${ext}"
     },
     "linux": {
@@ -57,8 +57,8 @@
     },
     "nsis": {
       "oneClick": true,
-      "installerIcon": "icon/agenda-defender.ico",
-      "uninstallerIcon": "icon/agenda-defender.ico",
+      "installerIcon": "icon/agenda-defender.png",
+      "uninstallerIcon": "icon/agenda-defender.png",
       "uninstallDisplayName": "${productName}",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true

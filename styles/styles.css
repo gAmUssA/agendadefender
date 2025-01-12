@@ -301,45 +301,100 @@ a#close-ticker:hover {
     background: rgba(0, 0, 0, 0.3);
 }
 
+/* Mobile-friendly layout */
 @media (max-width: 768px) {
-    div#textarea-wrapper {
-        bottom: 140px;
-    }
-    
     div#controls-wrapper {
-        height: 130px;
+        height: auto;
+        padding: 8px 16px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
-    
+
     div#controls-wrapper input#run-meeting-button {
-        font-size: 24px;
+        order: -1; /* Move button to top */
         margin: 12px auto;
+        padding: 12px 32px;
+        font-size: 32px; /* Bigger GO button */
+        width: 80%;
+        max-width: 200px;
     }
-    
-    textarea#agenda {
-        font-size: 18px;
-    }
-    
+
     div#controls-wrapper div#blurb {
-        font-size: 14px;
+        position: static;
+        width: 100%;
+        text-align: center;
+        padding: 12px 0;
+        margin-top: 12px;
+        font-size: 18px; /* Bigger example text */
     }
-    
+
+    div#controls-wrapper div#blurb ul {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    div#controls-wrapper div#blurb ul li a {
+        font-size: 20px; /* Bigger example links */
+        padding: 8px 16px;
+        display: inline-block;
+    }
+
     div#controls-wrapper section {
-        font-size: 14px;
+        position: static;
+        width: 100%;
+        margin-top: 12px;
     }
-    
-    div#ticker {
+
+    div#controls-wrapper section p {
+        text-align: center;
+        margin: 8px 0;
+        font-size: 16px; /* Bigger footer text */
+    }
+
+    div#textarea-wrapper {
+        bottom: 220px; /* Adjust for taller controls section */
+    }
+
+    textarea#agenda {
+        font-size: 20px; /* Bigger textarea font */
+        padding: 16px;
+        line-height: 1.6;
+    }
+
+    /* Bigger ticker text for mobile */
+    div#ticker div.agenda-item {
+        font-size: 24px;
+        padding: 20px;
+        margin: 15px;
+    }
+
+    a#close-ticker {
+        font-size: 40px;
         padding: 10px;
     }
-    
-    div#ticker div.agenda-item {
-        margin: 10px;
-        padding: 15px;
+}
+
+/* Extra styles for smaller phones */
+@media (max-width: 380px) {
+    textarea#agenda {
+        font-size: 18px; /* Slightly smaller for very small screens */
     }
-    
-    a#close-ticker {
-        top: 10px;
-        right: 20px;
-        font-size: 36px;
+
+    div#controls-wrapper input#run-meeting-button {
+        font-size: 28px;
+        padding: 10px 28px;
+    }
+}
+
+@media (display-mode: standalone) {
+    body {
+        padding-top: max(38px, env(safe-area-inset-top));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
     }
 }
 
