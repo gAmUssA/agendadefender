@@ -280,9 +280,12 @@ $(function () {
         if (window.running) runMeeting();
     }, false);
     // $("#agenda").on("keyup", saveToUrlHash);
-    $("a#lightning-talk").click(drawLightningTalk);
-    $("a#45-minute-talk").click(draw45MinuteTalk);
-    $("a#absolute-example").click(drawSampleAgenda);
+    
+    // Use event delegation for example links
+    $("#controls-wrapper").on("click", "a#lightning-talk", drawLightningTalk);
+    $("#controls-wrapper").on("click", "a#45-minute-talk", draw45MinuteTalk);
+    $("#controls-wrapper").on("click", "a#absolute-example", drawSampleAgenda);
+    
     $("a#close-ticker").click(stopMeeting);
     $("#run-meeting-button").click(runMeeting);
     $(document).on('keyup', function (e) {
