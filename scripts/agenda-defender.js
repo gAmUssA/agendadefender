@@ -204,37 +204,73 @@ const ThemeManager = {
 
     getCurrentTheme() {
         const theme = document.documentElement.getAttribute('data-theme') || this.THEMES.SYSTEM;
-        console.log('Current theme:', theme);
+        console.log('📱 Current theme:', theme);
         return theme;
     },
 
     setTheme(theme) {
-        console.log('Setting theme to:', theme);
+        console.log('🎨 Setting theme to:', theme);
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         this.applyTheme(theme);
+        this.updateToggleButton(theme);
     },
 
     applyTheme(theme) {
-        console.log('Applying theme:', theme);
+        console.log('✨ Applying theme:', theme);
         if (theme === this.THEMES.SYSTEM) {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            console.log('System prefers dark:', prefersDark);
+            console.log('🖥️ System prefers dark mode:', prefersDark);
             document.documentElement.classList.toggle('dark-theme', prefersDark);
+            this.updateToggleButton(prefersDark ? this.THEMES.DARK : this.THEMES.LIGHT);
         } else {
             document.documentElement.classList.toggle('dark-theme', theme === this.THEMES.DARK);
+            this.updateToggleButton(theme);
         }
     },
 
+    updateToggleButton(theme) {
+        const button = document.getElementById('theme-toggle');
+        if (!button) {
+            console.error('❌ Theme toggle button not found!');
+            return;
+        }
+        
+        console.log('🔄 Updating button for theme:', theme);
+        switch (theme) {
+            case this.THEMES.LIGHT:
+                button.textContent = '🌙'; // Moon for light mode (switch to dark)
+                break;
+            case this.THEMES.DARK:
+                button.textContent = '☀️'; // Sun for dark mode (switch to system)
+                break;
+            case this.THEMES.SYSTEM:
+                button.textContent = '🌓'; // Half moon for system mode (switch to light)
+                break;
+        }
+        console.log('🎯 Button icon set to:', button.textContent);
+    },
+
     initialize() {
-        console.log('Initializing theme manager');
-        const savedTheme = localStorage.getItem('theme') || this.THEMES.SYSTEM;
-        console.log('Saved theme:', savedTheme);
-        this.setTheme(savedTheme);
+        console.log('🚀 Initializing theme manager');
+        
+        // Check system preference first
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        console.log('🖥️ Initial system dark mode preference:', prefersDark);
+        
+        // Get saved theme or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        console.log('💾 Saved theme from localStorage:', savedTheme);
+        
+        const initialTheme = savedTheme || this.THEMES.SYSTEM;
+        console.log('🎬 Setting initial theme to:', initialTheme);
+        
+        // Apply initial theme
+        this.setTheme(initialTheme);
 
         // Listen for system theme changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            console.log('System theme changed, prefers dark:', e.matches);
+            console.log('🔄 System theme changed, prefers dark:', e.matches);
             if (this.getCurrentTheme() === this.THEMES.SYSTEM) {
                 this.applyTheme(this.THEMES.SYSTEM);
             }
@@ -242,31 +278,22 @@ const ThemeManager = {
 
         // Setup theme toggle button
         const themeToggle = document.getElementById('theme-toggle');
-        console.log('Theme toggle button:', themeToggle);
         if (!themeToggle) {
-            console.error('Theme toggle button not found!');
+            console.error('❌ Theme toggle button not found during initialization!');
             return;
         }
 
         themeToggle.addEventListener('click', () => {
-            console.log('Theme toggle clicked');
+            console.log('🖱️ Theme toggle clicked');
             const currentTheme = this.getCurrentTheme();
-            let newTheme;
-            
-            switch (currentTheme) {
-                case this.THEMES.LIGHT:
-                    newTheme = this.THEMES.DARK;
-                    break;
-                case this.THEMES.DARK:
-                    newTheme = this.THEMES.SYSTEM;
-                    break;
-                default:
-                    newTheme = this.THEMES.LIGHT;
-            }
-            
-            console.log('Switching from', currentTheme, 'to', newTheme);
+            const newTheme = currentTheme === this.THEMES.LIGHT ? this.THEMES.DARK :
+                            currentTheme === this.THEMES.DARK ? this.THEMES.SYSTEM :
+                            this.THEMES.LIGHT;
+            console.log('🔄 Switching from', currentTheme, 'to', newTheme);
             this.setTheme(newTheme);
         });
+        
+        console.log('✅ Theme manager initialization complete');
     }
 };
 
