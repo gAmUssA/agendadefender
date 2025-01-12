@@ -15,6 +15,8 @@
     --ticker-item-bg: rgba(0, 0, 0, 0.8);
     --ticker-item-finished-bg: rgba(0, 0, 0, 0.4);
     --ticker-text: #fff;
+    --bg-color: #fff;
+    --text-secondary: #6D6D72;
 }
 
 /* Dark theme styles */
@@ -35,6 +37,8 @@
     --ticker-item-bg: rgba(45, 55, 72, 0.8);
     --ticker-item-finished-bg: rgba(45, 55, 72, 0.4);
     --ticker-text: #fff;
+    --bg-color: #000;
+    --text-secondary: #8E8E93;
 }
 
 /* System preference dark mode */
@@ -56,6 +60,8 @@
         --ticker-item-bg: rgba(45, 55, 72, 0.8);
         --ticker-item-finished-bg: rgba(45, 55, 72, 0.4);
         --ticker-text: #fff;
+        --bg-color: #000;
+        --text-secondary: #8E8E93;
     }
 }
 
@@ -301,156 +307,132 @@ a#close-ticker:hover {
     background: rgba(0, 0, 0, 0.3);
 }
 
-/* Mobile-friendly layout */
+/* Mobile-specific styles */
 @media (max-width: 768px) {
     body {
-        /* Prevent bounce effect and handle safe areas */
         position: fixed;
         width: 100%;
         height: 100%;
         overflow: hidden;
-        padding-top: max(38px, env(safe-area-inset-top));
-        padding-bottom: max(16px, env(safe-area-inset-bottom));
-        padding-left: max(16px, env(safe-area-inset-left));
-        padding-right: max(16px, env(safe-area-inset-right));
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         -webkit-text-size-adjust: none;
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    textarea#agenda {
+        font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 16px;
+        line-height: 1.5;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--textarea-bg);
+        border: none;
+        color: var(--text-color);
+        resize: none;
+        height: calc(100% - 40px);
+        margin-bottom: 16px;
     }
 
     div#controls-wrapper {
-        height: auto;
-        padding: 8px 16px max(16px, env(safe-area-inset-bottom));
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--controls-bg);
+        padding: 20px 16px max(20px, env(safe-area-inset-bottom));
         display: flex;
         flex-direction: column;
         align-items: center;
-        background: var(--controls-bg);
+        gap: 16px;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(140, 140, 140, 0.2);
     }
 
     div#controls-wrapper input#run-meeting-button {
-        order: -1; /* Move button to top */
-        margin: 12px auto;
-        padding: 16px 40px;
-        font-size: 36px; /* Bigger GO button */
-        width: 90%;
-        max-width: 300px;
-        border-radius: 20px;
+        order: -1;
+        width: 120px;
+        height: 50px;
+        font-size: 24px;
+        border-radius: 25px;
+        background: #34C759;
+        color: white;
+        border: none;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
     }
 
     div#controls-wrapper div#blurb {
         position: static;
         width: 100%;
         text-align: center;
-        padding: 16px 0;
-        margin-top: 16px;
-        font-size: 22px; /* Bigger example text */
     }
 
     div#controls-wrapper div#blurb ul {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 16px;
+        gap: 12px;
     }
 
     div#controls-wrapper div#blurb ul li a {
-        font-size: 24px; /* Bigger example links */
-        padding: 12px 24px;
-        display: inline-block;
-        background: rgba(var(--link-color-rgb), 0.1);
-        border-radius: 12px;
-        transition: all 0.2s ease;
-    }
-
-    div#controls-wrapper div#blurb ul li a:active {
-        transform: scale(0.95);
-        background: rgba(var(--link-color-rgb), 0.2);
+        color: rgb(10, 132, 255);
+        font-size: 17px;
+        text-decoration: none;
     }
 
     div#controls-wrapper section {
         position: static;
         width: 100%;
-        margin-top: 16px;
+        text-align: center;
+        font-size: 15px;
+        color: var(--text-secondary);
     }
 
     div#controls-wrapper section p {
-        text-align: center;
-        margin: 12px 0;
-        font-size: 18px; /* Bigger footer text */
+        margin: 4px 0;
     }
 
-    div#textarea-wrapper {
-        bottom: 240px; /* Adjust for taller controls section */
-        padding-top: env(safe-area-inset-top);
+    div#controls-wrapper section a {
+        color: rgb(10, 132, 255);
+        text-decoration: none;
     }
 
-    textarea#agenda {
-        font-size: 24px; /* Bigger textarea font */
-        line-height: 1.6;
-        padding: 20px;
-        border-radius: 16px;
-    }
-
-    /* Bigger ticker text for mobile */
-    div#ticker {
-        padding-top: env(safe-area-inset-top);
-        padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    div#ticker div.agenda-item {
-        font-size: 32px;
-        padding: 24px;
-        margin: 20px;
-        border-radius: 16px;
-    }
-
-    a#close-ticker {
-        font-size: 48px;
-        padding: 16px;
-        top: max(10px, env(safe-area-inset-top));
-        right: max(20px, env(safe-area-inset-right));
+    div#controls-wrapper div#blurb::before {
+        content: "Examples:";
+        display: block;
+        font-size: 15px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
     }
 
     /* Theme toggle adjustments */
     #theme-toggle {
-        font-size: 24px;
-        padding: 12px;
+        position: fixed;
         top: max(10px, env(safe-area-inset-top));
-        right: max(20px, env(safe-area-inset-right));
-        border-radius: 12px;
-    }
-}
-
-/* Extra styles for smaller phones */
-@media (max-width: 380px) {
-    textarea#agenda {
-        font-size: 22px;
-    }
-
-    div#controls-wrapper input#run-meeting-button {
-        font-size: 32px;
-        padding: 14px 32px;
-    }
-
-    div#controls-wrapper div#blurb {
+        right: max(10px, env(safe-area-inset-right));
         font-size: 20px;
-    }
-
-    div#controls-wrapper div#blurb ul li a {
-        font-size: 22px;
-        padding: 10px 20px;
+        padding: 8px;
+        background: transparent;
+        border: none;
+        border-radius: 50%;
+        z-index: 1000;
+        cursor: pointer;
     }
 }
 
 /* iOS PWA specific styles */
 @media (display-mode: standalone) {
     body {
-        background: var(--bg-gradient-start);
+        background: var(--bg-color);
     }
 
     .titlebar {
         height: env(safe-area-inset-top);
-        background: var(--bg-gradient-start);
+        background: var(--bg-color);
         position: fixed;
         top: 0;
         left: 0;
@@ -458,36 +440,29 @@ a#close-ticker:hover {
         z-index: 1000;
     }
 
-    #theme-toggle {
-        top: max(10px, env(safe-area-inset-top));
-    }
-
     div#textarea-wrapper {
         padding-top: env(safe-area-inset-top);
     }
+}
 
-    div#controls-wrapper {
-        padding-bottom: max(16px, env(safe-area-inset-bottom));
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #000;
+        --text-color: #fff;
+        --text-secondary: #8E8E93;
+        --textarea-bg: #1C1C1E;
+        --controls-bg: rgba(28, 28, 30, 0.9);
     }
 }
 
-/* Theme toggle button styles */
-#theme-toggle {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    background: var(--textarea-bg);
-    color: var(--text-color);
-    border: 1px solid var(--link-color);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 16px;
-    z-index: 1000;
-}
-
-#theme-toggle:hover {
-    background: var(--link-color);
-    color: var(--button-text);
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-color: #fff;
+        --text-color: #000;
+        --text-secondary: #6D6D72;
+        --textarea-bg: #F2F2F7;
+        --controls-bg: rgba(242, 242, 247, 0.9);
+    }
 }
