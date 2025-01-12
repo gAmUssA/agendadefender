@@ -1,73 +1,61 @@
+/* Base theme variables */
 :root {
-    --bg-gradient-start: #f5f7fa;
-    --bg-gradient-end: #c3cfe2;
-    --text-color: #000;
-    --link-color: #2c5282;
-    --link-hover-color: #1a365d;
-    --textarea-bg: #fff;
-    --textarea-color: #000;
-    --controls-bg: rgba(255, 255, 255, 0.9);
-    --controls-shadow: rgba(0, 0, 0, 0.1);
-    --button-gradient-start: #38a169;
-    --button-gradient-end: #2f855a;
-    --button-text: #fff;
-    --ticker-bg: #000;
-    --ticker-item-bg: rgba(0, 0, 0, 0.8);
-    --ticker-item-finished-bg: rgba(0, 0, 0, 0.4);
-    --ticker-text: #fff;
-    --bg-color: #fff;
+    /* Light theme defaults */
+    --bg-color: #F2F2F7;
+    --text-color: #000000;
     --text-secondary: #6D6D72;
+    --textarea-bg: #FFFFFF;
+    --controls-bg: rgba(255, 255, 255, 0.85);
+    --link-color: rgb(0, 122, 255);
+    --button-bg: #34C759;
+    --button-text: #FFFFFF;
+    --ticker-bg: rgba(0, 0, 0, 0.95);
+    --ticker-item-bg: rgba(255, 255, 255, 0.95);
+    --ticker-item-finished-bg: rgba(255, 255, 255, 0.7);
+    --ticker-text: #000000;
+    --border-color: rgba(60, 60, 67, 0.1);
 }
 
-/* Dark theme styles */
+/* Dark theme */
 :root[data-theme="dark"] {
-    --bg-gradient-start: #1a202c;
-    --bg-gradient-end: #2d3748;
-    --text-color: #fff;
-    --link-color: #63b3ed;
-    --link-hover-color: #90cdf4;
-    --textarea-bg: #2d3748;
-    --textarea-color: #fff;
-    --controls-bg: rgba(26, 32, 44, 0.9);
-    --controls-shadow: rgba(0, 0, 0, 0.3);
-    --button-gradient-start: #38a169;
-    --button-gradient-end: #2f855a;
-    --button-text: #fff;
-    --ticker-bg: #000;
-    --ticker-item-bg: rgba(45, 55, 72, 0.8);
-    --ticker-item-finished-bg: rgba(45, 55, 72, 0.4);
-    --ticker-text: #fff;
-    --bg-color: #000;
+    --bg-color: #000000;
+    --text-color: #FFFFFF;
     --text-secondary: #8E8E93;
+    --textarea-bg: #1C1C1E;
+    --controls-bg: rgba(28, 28, 30, 0.85);
+    --link-color: rgb(10, 132, 255);
+    --button-bg: #34C759;
+    --button-text: #FFFFFF;
+    --ticker-bg: rgba(0, 0, 0, 0.95);
+    --ticker-item-bg: rgba(44, 44, 46, 0.95);
+    --ticker-item-finished-bg: rgba(44, 44, 46, 0.7);
+    --ticker-text: #FFFFFF;
+    --border-color: rgba(84, 84, 88, 0.65);
 }
 
 /* System preference dark mode */
 @media (prefers-color-scheme: dark) {
     :root[data-theme="system"] {
-        --bg-gradient-start: #1a202c;
-        --bg-gradient-end: #2d3748;
-        --text-color: #fff;
-        --link-color: #63b3ed;
-        --link-hover-color: #90cdf4;
-        --textarea-bg: #2d3748;
-        --textarea-color: #fff;
-        --controls-bg: rgba(26, 32, 44, 0.9);
-        --controls-shadow: rgba(0, 0, 0, 0.3);
-        --button-gradient-start: #38a169;
-        --button-gradient-end: #2f855a;
-        --button-text: #fff;
-        --ticker-bg: #000;
-        --ticker-item-bg: rgba(45, 55, 72, 0.8);
-        --ticker-item-finished-bg: rgba(45, 55, 72, 0.4);
-        --ticker-text: #fff;
-        --bg-color: #000;
+        --bg-color: #000000;
+        --text-color: #FFFFFF;
         --text-secondary: #8E8E93;
+        --textarea-bg: #1C1C1E;
+        --controls-bg: rgba(28, 28, 30, 0.85);
+        --link-color: rgb(10, 132, 255);
+        --button-bg: #34C759;
+        --button-text: #FFFFFF;
+        --ticker-bg: rgba(0, 0, 0, 0.95);
+        --ticker-item-bg: rgba(44, 44, 46, 0.95);
+        --ticker-item-finished-bg: rgba(44, 44, 46, 0.7);
+        --ticker-text: #FFFFFF;
+        --border-color: rgba(84, 84, 88, 0.65);
     }
 }
 
+/* Global styles */
 html {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-color) 100%);
     min-height: 100vh;
     margin: 0;
     padding: 0;
@@ -80,6 +68,7 @@ body {
     box-sizing: border-box;
     height: 100vh;
     -webkit-user-select: none;
+    background-color: var(--bg-color);
 }
 
 div#textarea-wrapper {
@@ -100,7 +89,7 @@ div#controls-wrapper {
     text-align: center;
     padding: 0 16px;
     background: var(--controls-bg);
-    box-shadow: 0 -2px 10px var(--controls-shadow);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
 div#controls-wrapper div#blurb {
@@ -128,7 +117,7 @@ div#controls-wrapper div#blurb ul li a {
 }
 
 div#controls-wrapper div#blurb ul li a:hover {
-    color: var(--link-hover-color);
+    color: var(--link-color);
     text-decoration: underline;
 }
 
@@ -157,19 +146,19 @@ div#controls-wrapper input#run-meeting-button {
     border-radius: 12px;
     padding: 8px 24px;
     color: var(--button-text);
-    background: linear-gradient(135deg, var(--button-gradient-start) 0%, var(--button-gradient-end) 100%);
+    background: var(--button-bg);
     font-size: 32px;
     font-weight: 600;
     border: none;
     cursor: pointer;
     text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 6px var(--controls-shadow);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 div#controls-wrapper input#run-meeting-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 8px var(--controls-shadow);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
 }
 
 textarea#agenda {
@@ -181,20 +170,20 @@ textarea#agenda {
     font-family: 'SF Mono', Consolas, Monaco, monospace;
     padding: 16px;
     box-sizing: border-box;
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 4px 6px var(--controls-shadow);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     resize: none;
     transition: box-shadow 0.2s;
     -webkit-user-select: text;
     -webkit-app-region: no-drag;
     background-color: var(--textarea-bg);
-    color: var(--textarea-color);
+    color: var(--text-color);
 }
 
 textarea#agenda:focus {
     outline: none;
-    box-shadow: 0 6px 12px var(--controls-shadow);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 div#ticker {
@@ -204,7 +193,7 @@ div#ticker {
     left: 0;
     right: 0;
     display: none;
-    background-color: var(--bg-gradient-start);
+    background-color: var(--ticker-bg);
     z-index: 1000;
     padding: 20px;
     overflow-y: auto;
@@ -214,23 +203,23 @@ div#ticker div.agenda-item {
     position: relative;
     margin: 15px;
     padding: 20px;
-    background-color: var(--textarea-bg);
+    background-color: var(--ticker-item-bg);
     border-radius: 12px;
     overflow: hidden;
     height: auto !important;
     transition: background-color 0.3s ease;
-    box-shadow: 0 4px 6px var(--controls-shadow);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 div#ticker div.agenda-item.finished {
-    background-color: var(--controls-bg);
+    background-color: var(--ticker-item-finished-bg);
     opacity: 0.7;
 }
 
 div.agenda-item span.agenda-item-text {
     position: relative;
     z-index: 5;
-    color: var(--text-color);
+    color: var(--ticker-text);
     font-weight: 600;
     display: block;
     text-align: left;
@@ -247,7 +236,7 @@ div.progress-bar {
     bottom: 0;
     left: 0;
     width: 0;
-    background-color: var(--button-gradient-start);
+    background-color: var(--button-bg);
     opacity: 0.2;
     z-index: 1;
     border-radius: 12px;
@@ -320,6 +309,7 @@ a#close-ticker:hover {
         font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         display: flex;
         flex-direction: column;
+        background-color: var(--bg-color);
     }
 
     div#textarea-wrapper {
@@ -338,7 +328,7 @@ a#close-ticker:hover {
         padding: 16px;
         border-radius: 12px;
         background: var(--textarea-bg);
-        border: none;
+        border: 1px solid var(--border-color);
         color: var(--text-color);
         width: 100%;
         height: 100%;
@@ -358,7 +348,7 @@ a#close-ticker:hover {
         gap: 16px;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        border-top: 1px solid rgba(140, 140, 140, 0.2);
+        border-top: 1px solid var(--border-color);
         box-sizing: border-box;
     }
 
@@ -368,12 +358,13 @@ a#close-ticker:hover {
         height: 50px;
         font-size: 24px;
         border-radius: 25px;
-        background: #34C759;
-        color: white;
+        background: var(--button-bg);
+        color: var(--button-text);
         border: none;
         font-weight: 600;
         margin: 0;
         padding: 0;
+        -webkit-tap-highlight-color: transparent;
     }
 
     div#controls-wrapper div#blurb {
@@ -392,9 +383,10 @@ a#close-ticker:hover {
     }
 
     div#controls-wrapper div#blurb ul li a {
-        color: rgb(10, 132, 255);
+        color: var(--link-color);
         font-size: 17px;
         text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
     }
 
     div#controls-wrapper section {
@@ -410,8 +402,9 @@ a#close-ticker:hover {
     }
 
     div#controls-wrapper section a {
-        color: rgb(10, 132, 255);
+        color: var(--link-color);
         text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
     }
 
     div#controls-wrapper div#blurb::before {
@@ -422,7 +415,6 @@ a#close-ticker:hover {
         margin-bottom: 8px;
     }
 
-    /* Theme toggle adjustments */
     #theme-toggle {
         position: fixed;
         top: max(10px, env(safe-area-inset-top));
@@ -434,6 +426,8 @@ a#close-ticker:hover {
         border-radius: 50%;
         z-index: 1000;
         cursor: pointer;
+        color: var(--text-color);
+        -webkit-tap-highlight-color: transparent;
     }
 }
 
@@ -455,27 +449,5 @@ a#close-ticker:hover {
 
     div#textarea-wrapper {
         padding-top: env(safe-area-inset-top);
-    }
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-color: #000;
-        --text-color: #fff;
-        --text-secondary: #8E8E93;
-        --textarea-bg: #1C1C1E;
-        --controls-bg: rgba(28, 28, 30, 0.9);
-    }
-}
-
-/* Light mode adjustments */
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg-color: #fff;
-        --text-color: #000;
-        --text-secondary: #6D6D72;
-        --textarea-bg: #F2F2F7;
-        --controls-bg: rgba(242, 242, 247, 0.9);
     }
 }
