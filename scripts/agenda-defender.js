@@ -54,7 +54,7 @@ var Agenda = {
 
 function drawSampleAgenda(event) {
     var topics = new Array(
-        "This is Agenda Defender!",
+        "This is Time My Talk!",
         "List your agenda items",
         "Times are local, 24-hour clock, HH:mm",
         "Put the FINISH time last",

@@ -1,7 +1,7 @@
 {
-  "name": "agenda-defender",
+  "name": "time-my-talk",
   "version": "1.0.4",
-  "description": "A meeting agenda timer application",
+  "description": "A meeting and talk timer application",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -22,8 +22,8 @@
     "electron-builder": "^24.9.1"
   },
   "build": {
-    "appId": "com.agendadefender.app",
-    "productName": "Agenda Defender",
+    "appId": "app.timemytalk",
+    "productName": "Time My Talk",
     "directories": {
       "output": "dist"
     },

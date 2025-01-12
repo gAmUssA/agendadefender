@@ -1,12 +1,20 @@
 [project]
-name = "agendadefender"
-version = "0.1.0"
-description = "A meeting agenda timer application"
-requires-python = ">=3.8"
+name = "time-my-talk"
+version = "1.0.4"
+description = "A meeting and talk timer application"
+authors = [
+    {name = "Viktor Gamov", email = "viktor@gamov.io"},
+]
+dependencies = [
+    "flask>=2.0.0"
+]
+requires-python = ">=3.7"
+readme = "README.adoc"
+license = {text = "MIT"}
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.hatch.metadata]
 allow-direct-references = true

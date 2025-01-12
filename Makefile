@@ -19,7 +19,7 @@ NODE_MODULES := node_modules
 
 # Help target
 help:
-	@echo "$(BOLD)🛠  Agenda Defender Makefile Help$(RESET)"
+	@echo "$(BOLD)⏱️  Time My Talk Makefile Help$(RESET)"
 	@echo "$(BLUE)Available targets:$(RESET)"
 	@echo "  $(YELLOW)make setup$(RESET)      💻 Install all dependencies (Python & Node.js)"
 	@echo "  $(YELLOW)make web$(RESET)        🌐 Run web version using Flask"
