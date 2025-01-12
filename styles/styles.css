@@ -303,98 +303,171 @@ a#close-ticker:hover {
 
 /* Mobile-friendly layout */
 @media (max-width: 768px) {
+    body {
+        /* Prevent bounce effect and handle safe areas */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        padding-top: max(38px, env(safe-area-inset-top));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        -webkit-text-size-adjust: none;
+    }
+
     div#controls-wrapper {
         height: auto;
-        padding: 8px 16px 16px;
+        padding: 8px 16px max(16px, env(safe-area-inset-bottom));
         display: flex;
         flex-direction: column;
         align-items: center;
+        background: var(--controls-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     div#controls-wrapper input#run-meeting-button {
         order: -1; /* Move button to top */
         margin: 12px auto;
-        padding: 12px 32px;
-        font-size: 32px; /* Bigger GO button */
-        width: 80%;
-        max-width: 200px;
+        padding: 16px 40px;
+        font-size: 36px; /* Bigger GO button */
+        width: 90%;
+        max-width: 300px;
+        border-radius: 20px;
     }
 
     div#controls-wrapper div#blurb {
         position: static;
         width: 100%;
         text-align: center;
-        padding: 12px 0;
-        margin-top: 12px;
-        font-size: 18px; /* Bigger example text */
+        padding: 16px 0;
+        margin-top: 16px;
+        font-size: 22px; /* Bigger example text */
     }
 
     div#controls-wrapper div#blurb ul {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
+        gap: 16px;
     }
 
     div#controls-wrapper div#blurb ul li a {
-        font-size: 20px; /* Bigger example links */
-        padding: 8px 16px;
+        font-size: 24px; /* Bigger example links */
+        padding: 12px 24px;
         display: inline-block;
+        background: rgba(var(--link-color-rgb), 0.1);
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    div#controls-wrapper div#blurb ul li a:active {
+        transform: scale(0.95);
+        background: rgba(var(--link-color-rgb), 0.2);
     }
 
     div#controls-wrapper section {
         position: static;
         width: 100%;
-        margin-top: 12px;
+        margin-top: 16px;
     }
 
     div#controls-wrapper section p {
         text-align: center;
-        margin: 8px 0;
-        font-size: 16px; /* Bigger footer text */
+        margin: 12px 0;
+        font-size: 18px; /* Bigger footer text */
     }
 
     div#textarea-wrapper {
-        bottom: 220px; /* Adjust for taller controls section */
+        bottom: 240px; /* Adjust for taller controls section */
+        padding-top: env(safe-area-inset-top);
     }
 
     textarea#agenda {
-        font-size: 20px; /* Bigger textarea font */
-        padding: 16px;
+        font-size: 24px; /* Bigger textarea font */
         line-height: 1.6;
+        padding: 20px;
+        border-radius: 16px;
     }
 
     /* Bigger ticker text for mobile */
+    div#ticker {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
     div#ticker div.agenda-item {
-        font-size: 24px;
-        padding: 20px;
-        margin: 15px;
+        font-size: 32px;
+        padding: 24px;
+        margin: 20px;
+        border-radius: 16px;
     }
 
     a#close-ticker {
-        font-size: 40px;
-        padding: 10px;
+        font-size: 48px;
+        padding: 16px;
+        top: max(10px, env(safe-area-inset-top));
+        right: max(20px, env(safe-area-inset-right));
+    }
+
+    /* Theme toggle adjustments */
+    #theme-toggle {
+        font-size: 24px;
+        padding: 12px;
+        top: max(10px, env(safe-area-inset-top));
+        right: max(20px, env(safe-area-inset-right));
+        border-radius: 12px;
     }
 }
 
 /* Extra styles for smaller phones */
 @media (max-width: 380px) {
     textarea#agenda {
-        font-size: 18px; /* Slightly smaller for very small screens */
+        font-size: 22px;
     }
 
     div#controls-wrapper input#run-meeting-button {
-        font-size: 28px;
-        padding: 10px 28px;
+        font-size: 32px;
+        padding: 14px 32px;
+    }
+
+    div#controls-wrapper div#blurb {
+        font-size: 20px;
+    }
+
+    div#controls-wrapper div#blurb ul li a {
+        font-size: 22px;
+        padding: 10px 20px;
     }
 }
 
+/* iOS PWA specific styles */
 @media (display-mode: standalone) {
     body {
-        padding-top: max(38px, env(safe-area-inset-top));
+        background: var(--bg-gradient-start);
+    }
+
+    .titlebar {
+        height: env(safe-area-inset-top);
+        background: var(--bg-gradient-start);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    #theme-toggle {
+        top: max(10px, env(safe-area-inset-top));
+    }
+
+    div#textarea-wrapper {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    div#controls-wrapper {
         padding-bottom: max(16px, env(safe-area-inset-bottom));
-        padding-left: max(16px, env(safe-area-inset-left));
-        padding-right: max(16px, env(safe-area-inset-right));
     }
 }
 
