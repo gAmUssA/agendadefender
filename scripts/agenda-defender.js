@@ -11,7 +11,7 @@ function AgendaItem(timePart1, timePart2, text) {
     }
     this.isRelativeMode = timePart1 == 0 && timePart2 == 0;
     this.getAbsoluteTime = function () {
-        var time = new Date();
+        let time = new Date();
         time.setHours(timePart1);
         time.setMinutes(timePart2);
         time.setSeconds(0);
@@ -19,63 +19,63 @@ function AgendaItem(timePart1, timePart2, text) {
         return time;
     }
     this.getRelativeTime = function (baseline) {
-        var time = new Date(baseline);
+        let time = new Date(baseline);
         time.setMinutes(time.getMinutes() + timePart1);
         time.setSeconds(time.getSeconds() + timePart2);
         return (time);
     }
 }
 
-var Agenda = {
+let Agenda = {
     parseItem: function (itemString) {
         try {
-            var agendaItemRegExp = /^(\d\d):(\d\d)\s+(.*)$/;
-            var tokens = agendaItemRegExp.exec(itemString);
-            var p1 = parseInt(tokens[1]);
-            var p2 = parseInt(tokens[2]);
+            let agendaItemRegExp = /^(\d\d):(\d\d)\s+(.*)$/;
+            let tokens = agendaItemRegExp.exec(itemString);
+            let p1 = parseInt(tokens[1]);
+            let p2 = parseInt(tokens[2]);
             return new AgendaItem(p1, p2, itemString);
         } catch (e) {
             console.warn(e);
-            return (null);
+            return null;
         }
     },
 
     parse: function (agendaString) {
-        var items = agendaString.split(/\n/).map(line => this.parseItem(line)).filter(line => line != null);
-        var relativeMode = items[0].isRelativeMode;
-        var now = new Date();
+        let items = agendaString.split(/\n/).map(line => this.parseItem(line)).filter(line => line != null);
+        let relativeMode = items[0].isRelativeMode;
+        let now = new Date();
         items.forEach(item => item.commencesAt = (relativeMode ? item.getRelativeTime(now) : item.getAbsoluteTime()));
-        for (var i = 0; i < (items.length - 1); i++) items[i].concludesAt = items[i + 1].commencesAt;
+        for (let i = 0; i < (items.length - 1); i++) items[i].concludesAt = items[i + 1].commencesAt;
         items.pop();
         console.debug(items);
         return items;
     }
-}
+};
 
 function drawSampleAgenda(event) {
-    var topics = new Array(
-        "This is Time My Talk!",
+    let item;
+    const topics = ["This is Time My Talk!",
         "List your agenda items",
         "Times are local, 24-hour clock, HH:mm",
         "Put the FINISH time last",
         "Then click 'GO!'",
         "Use it to run meetings,",
         "for giving talks and presentations,",
-        "or whatever you like, really :)");
-    var time = new Date();
-    var items = new Array();
+        "or whatever you like, really :)"];
+    const time = new Date();
+    const items = [];
     time.setMinutes(time.getMinutes() - 5);
-    for (var i = 0; i < 8; i++) {
-        var item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " " + topics[i];
+    for (let i = 0; i < 8; i++) {
+        item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " " + topics[i];
         items.push(item);
         time.setMinutes(time.getMinutes() + 2);
     }
     item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " FINISH";
     items.push(item);
-    var agenda = items.join("\n");
+    let agenda = items.join("\n");
     $("#agenda").html(agenda);
     if (event && event.preventDefault) event.preventDefault();
-    return (false);
+    return false;
 }
 
 function draw45MinuteTalk(event) {
@@ -88,7 +88,7 @@ function draw45MinuteTalk(event) {
 40:00 Conclusion and next steps
 45:00 FINISH`);
     event.preventDefault();
-    return (false);
+    return false;
 }
 
 function drawLightningTalk(event) {
@@ -100,7 +100,7 @@ function drawLightningTalk(event) {
 02:30 Funny stories
 03:00 FINISH`);
     event.preventDefault();
-    return (false);
+    return false;
 }
 
 // function saveToUrlHash() {
@@ -123,42 +123,42 @@ function drawLightningTalk(event) {
 // }
 
 function runMeeting() {
-    var agendaString = $("#agenda").val();
-    var agenda = Agenda.parse(agendaString);
-    var $ticker = $("#ticker");
+    let agendaString = $("#agenda").val();
+    let agenda = Agenda.parse(agendaString);
+    let $ticker = $("#ticker");
     $ticker.html('');
-    
+
     agenda.forEach(function (item, index, array) {
         $div = $("<div class='agenda-item' />");
         $span = $("<span class='agenda-item-text' />")
         $span.text(item.text);
-        
+
         // Calculate font size based on viewport height and number of items
-        var viewportHeight = window.innerHeight;
-        var fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
+        let viewportHeight = window.innerHeight;
+        let fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
         $span.css("font-size", fontSize + "px");
         $span.css("line-height", (fontSize * 1.2) + "px");
-        
+
         $div.append($span);
-        
+
         $progressBar = $("<div class='progress-bar' />");
         if (item.color) $progressBar.css("background-color", item.color);
-        
+
         item.element = $div;
         item.progressBar = $progressBar;
         $div.append($progressBar);
         $ticker.append($div);
     });
-    
+
     $("#ticker").show();
     $("a#close-ticker").show();
     window.ticker = window.setInterval(makeTicker(agenda), 10);
     window.running = true;
-    
+
     // Add resize handler to adjust font size when window is resized
-    $(window).on('resize.agendaDefender', function() {
-        var viewportHeight = window.innerHeight;
-        var fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
+    $(window).on('resize.agendaDefender', function () {
+        let viewportHeight = window.innerHeight;
+        let fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
         $('.agenda-item-text').css({
             "font-size": fontSize + "px",
             "line-height": (fontSize * 1.2) + "px"
@@ -168,17 +168,17 @@ function runMeeting() {
 
 function makeTicker(agenda) {
     return function () {
-        var now = new Date();
+        let now = new Date();
         agenda.forEach(function (item, index, array) {
             if (item.concludesAt < now) {
                 item.progressBar.hide();
                 item.element.addClass('finished');
             }
             if (item.commencesAt < now && item.concludesAt > now) {
-                var duration = item.concludesAt.valueOf() - item.commencesAt.valueOf();
-                var elapsed = now.valueOf() - item.commencesAt.valueOf();
-                var multiplier = elapsed / duration;
-                var newWidth = item.element.width() * multiplier;
+                let duration = item.concludesAt.valueOf() - item.commencesAt.valueOf();
+                let elapsed = now.valueOf() - item.commencesAt.valueOf();
+                let multiplier = elapsed / duration;
+                let newWidth = item.element.width() * multiplier;
                 item.progressBar.css("width", newWidth + "px");
             }
         });
@@ -235,7 +235,7 @@ const ThemeManager = {
             console.error('❌ Theme toggle button not found!');
             return;
         }
-        
+
         console.log('🔄 Updating button for theme:', theme);
         switch (theme) {
             case this.THEMES.LIGHT:
@@ -253,18 +253,18 @@ const ThemeManager = {
 
     initialize() {
         console.log('🚀 Initializing theme manager');
-        
+
         // Check system preference first
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         console.log('🖥️ Initial system dark mode preference:', prefersDark);
-        
+
         // Get saved theme or use system preference
         const savedTheme = localStorage.getItem('theme');
         console.log('💾 Saved theme from localStorage:', savedTheme);
-        
+
         const initialTheme = savedTheme || this.THEMES.SYSTEM;
         console.log('🎬 Setting initial theme to:', initialTheme);
-        
+
         // Apply initial theme
         this.setTheme(initialTheme);
 
@@ -287,12 +287,12 @@ const ThemeManager = {
             console.log('🖱️ Theme toggle clicked');
             const currentTheme = this.getCurrentTheme();
             const newTheme = currentTheme === this.THEMES.LIGHT ? this.THEMES.DARK :
-                            currentTheme === this.THEMES.DARK ? this.THEMES.SYSTEM :
-                            this.THEMES.LIGHT;
+                currentTheme === this.THEMES.DARK ? this.THEMES.SYSTEM :
+                    this.THEMES.LIGHT;
             console.log('🔄 Switching from', currentTheme, 'to', newTheme);
             this.setTheme(newTheme);
         });
-        
+
         console.log('✅ Theme manager initialization complete');
     }
 };
@@ -300,22 +300,27 @@ const ThemeManager = {
 $(function () {
     // Initialize theme manager
     ThemeManager.initialize();
-    
+
     // if (!loadUrlHash()) 
     drawSampleAgenda();
     window.addEventListener("resize", function () {
         if (window.running) runMeeting();
     }, false);
     // $("#agenda").on("keyup", saveToUrlHash);
-    
+
     // Use event delegation for example links
     $("#controls-wrapper").on("click", "a#lightning-talk", drawLightningTalk);
     $("#controls-wrapper").on("click", "a#45-minute-talk", draw45MinuteTalk);
     $("#controls-wrapper").on("click", "a#absolute-example", drawSampleAgenda);
-    
+
     $("a#close-ticker").click(stopMeeting);
     $("#run-meeting-button").click(runMeeting);
     $(document).on('keyup', function (e) {
         if (e.key == "Escape") stopMeeting();
     });
 });
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {AgendaItem, Agenda};
+}
