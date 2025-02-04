@@ -24,6 +24,7 @@ help:
 	@echo "  $(YELLOW)make setup$(RESET)      💻 Install all dependencies (Python & Node.js)"
 	@echo "  $(YELLOW)make web$(RESET)        🌐 Run web version using Flask"
 	@echo "  $(YELLOW)make dev$(RESET)        🔧 Run Electron app in development mode"
+	@echo "  $(YELLOW)make test$(RESET)       🧪 Run all tests"
 	@echo "  $(YELLOW)make build$(RESET)      📦 Build Electron app for distribution"
 	@echo "  $(YELLOW)make clean$(RESET)      🧹 Clean up build artifacts"
 	@echo "  $(YELLOW)make deploy$(RESET)     🚀 Deploy to GitHub Pages"
@@ -61,16 +62,23 @@ dev: $(NODE_MODULES)
 	@echo "$(GREEN)🚀 Starting Electron app in development mode...$(RESET)"
 	@npm start
 
+# Test target
+.PHONY: test
+test: $(NODE_MODULES)
+	@echo "$(BLUE)🧪 Running tests...$(RESET)"
+	@npm test
+	@echo "$(GREEN)✅ All tests passed!$(RESET)"
+
 # Build target
 .PHONY: build
-build: $(NODE_MODULES)
+build: test $(NODE_MODULES)
 	@echo "$(BLUE)🔨 Building Electron app...$(RESET)"
 	@npm run build
 	@echo "$(GREEN)✅ Build completed! Check the $(BOLD)dist/$(RESET)$(GREEN) directory for the packaged app.$(RESET)"
 
 # Deploy target
 .PHONY: deploy
-deploy:
+deploy: test
 	@echo "$(BLUE)🚀 Deploying to GitHub Pages...$(RESET)"
 	@echo "$(GREEN)✨ Deployment will be available at https://timemytalk.app$(RESET)"
 	@git push origin master
@@ -83,4 +91,4 @@ clean:
 	@echo "$(GREEN)✨ Cleanup complete!$(RESET)"
 
 # Prevent errors if files exist with target names
-.PHONY: help setup web dev build clean deploy
+.PHONY: help setup web dev build clean deploy test

@@ -75,5 +75,47 @@ describe('Agenda', () => {
             expect(result).toHaveLength(2);
             expect(result[0].isRelativeMode).toBe(true);
         });
+
+        test('should parse 45-minute talk template', () => {
+            const agenda = `00:00 Intro and welcome
+05:00 Context: why are database deployments hard?
+08:00 Rolling forward, rolling back
+13:00 Schema management
+18:00 Working with static data and lookup data
+25:00 Live demonstration
+40:00 Conclusion and next steps
+45:00 FINISH`;
+            const result = Agenda.parse(agenda);
+            expect(result).toHaveLength(7); // FINISH item is popped
+            expect(result[0].isRelativeMode).toBe(true);
+            expect(result[0].text).toBe('00:00 Intro and welcome');
+            expect(result[6].text).toBe('40:00 Conclusion and next steps');
+        });
+
+        test('should parse lightning talk template', () => {
+            const agenda = `00:00 Introduction to lightning talks
+00:30 How I learned to love three-minute talks
+01:00 The history of pecha kucha
+01:30 Rehearsal tips for lightning talks
+02:00 Scheduling tips
+02:30 Funny stories
+03:00 FINISH`;
+            const result = Agenda.parse(agenda);
+            expect(result).toHaveLength(6); // FINISH item is popped
+            expect(result[0].isRelativeMode).toBe(true);
+            expect(result[0].text).toBe('00:00 Introduction to lightning talks');
+            expect(result[5].text).toBe('02:30 Funny stories');
+
+            // Verify time calculations
+            const baseline = new Date('2024-01-01T10:00:00');
+            const startTime = result[0].getRelativeTime(baseline);
+            expect(startTime.getHours()).toBe(10);
+            expect(startTime.getMinutes()).toBe(0);
+
+            const lastItemTime = result[5].getRelativeTime(baseline);
+            expect(lastItemTime.getHours()).toBe(10);
+            expect(lastItemTime.getMinutes()).toBe(2);
+            expect(lastItemTime.getSeconds()).toBe(30);
+        });
     });
 });
