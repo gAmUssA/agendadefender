@@ -33,6 +33,20 @@ const UrlSharing = (() => {
         }
     };
 
+    // Shorten URL using TinyURL API
+    const shortenUrl = async (url) => {
+        try {
+            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+            if (!response.ok) {
+                throw new Error('Failed to shorten URL');
+            }
+            return await response.text();
+        } catch (error) {
+            console.error('Error shortening URL:', error);
+            return null;
+        }
+    };
+
     // Copy text to clipboard
     const copyToClipboard = async (text) => {
         try {
@@ -107,18 +121,34 @@ const UrlSharing = (() => {
             const text = textarea.value;
             const url = saveToUrlHash(text);
             if (url) {
-                const success = await copyToClipboard(url);
-                if (success) {
-                    message.textContent = 'URL copied to clipboard!';
-                    message.style.display = 'block';
-                    return new Promise(resolve => {
-                        setTimeout(() => {
-                            message.style.display = 'none';
-                            resolve();
-                        }, 2000);
-                    });
+                message.textContent = 'Shortening URL...';
+                message.style.display = 'block';
+                
+                const shortUrl = await shortenUrl(url);
+                if (shortUrl) {
+                    const success = await copyToClipboard(shortUrl);
+                    if (success) {
+                        message.textContent = 'Short URL copied to clipboard!';
+                    } else {
+                        message.textContent = 'Failed to copy URL to clipboard';
+                    }
+                } else {
+                    const success = await copyToClipboard(url);
+                    if (success) {
+                        message.textContent = 'URL copied to clipboard! (URL shortening failed)';
+                    } else {
+                        message.textContent = 'Failed to copy URL';
+                    }
                 }
+                
+                // Hide message after 2 seconds
+                setTimeout(() => {
+                    message.style.display = 'none';
+                }, 2000);
             }
+            
+            // Save to localStorage
+            saveToStorage(textarea.value);
         });
 
         // Auto-save to localStorage
@@ -146,6 +176,7 @@ const UrlSharing = (() => {
     return {
         saveToUrlHash,
         loadUrlHash,
+        shortenUrl,
         copyToClipboard,
         saveToStorage,
         loadFromStorage,
