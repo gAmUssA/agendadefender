@@ -14,6 +14,11 @@
     --ticker-item-finished-bg: rgba(255, 255, 255, 0.7);
     --ticker-text: #000000;
     --border-color: rgba(60, 60, 67, 0.1);
+    --button-hover-bg: #3ECF6D;
+    --success-bg: #4CAF50;
+    --success-text: white;
+    --share-button-bg: #007AFF;
+    --share-button-hover-bg: #0063CC;
 }
 
 /* Dark theme */
@@ -31,6 +36,11 @@
     --ticker-item-finished-bg: rgba(44, 44, 46, 0.7);
     --ticker-text: #FFFFFF;
     --border-color: rgba(84, 84, 88, 0.65);
+    --button-hover-bg: #3ECF6D;
+    --success-bg: #4CAF50;
+    --success-text: white;
+    --share-button-bg: #0A84FF;
+    --share-button-hover-bg: #0071E3;
 }
 
 /* System preference dark mode */
@@ -49,6 +59,11 @@
         --ticker-item-finished-bg: rgba(44, 44, 46, 0.7);
         --ticker-text: #FFFFFF;
         --border-color: rgba(84, 84, 88, 0.65);
+        --button-hover-bg: #3ECF6D;
+        --success-bg: #4CAF50;
+        --success-text: white;
+        --share-button-bg: #0A84FF;
+        --share-button-hover-bg: #0071E3;
     }
 }
 
@@ -75,7 +90,7 @@ div#textarea-wrapper {
     position: absolute;
     top: 38px;
     left: 16px;
-    bottom: 120px;
+    bottom: 150px;
     right: 16px;
     box-sizing: border-box;
 }
@@ -84,66 +99,70 @@ div#controls-wrapper {
     position: absolute;
     left: 0;
     bottom: 0;
-    height: 110px;
+    height: 130px;
     right: 0;
-    text-align: center;
-    padding: 0 16px;
+    height: 110px;
+    padding: 16px;
     background: var(--controls-bg);
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 div#controls-wrapper div#blurb {
-    position: absolute;
-    left: 24px;
     text-align: left;
     padding: 8px;
 }
 
 div#controls-wrapper div#blurb ul {
+    list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
 div#controls-wrapper div#blurb ul li {
-    list-style-position: inside;
-    list-style-type: none;
+    display: block;
     margin: 4px 0;
-}
-
-div#controls-wrapper div#blurb ul li a {
-    color: var(--link-color);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-div#controls-wrapper div#blurb ul li a:hover {
-    color: var(--link-color);
-    text-decoration: underline;
 }
 
 div#controls-wrapper section {
-    position: absolute;
-    right: 24px;
+    text-align: center;
 }
 
 div#controls-wrapper section p {
-    text-align: right;
     margin: 4px 0;
 }
 
-div#controls-wrapper section p a {
-    color: var(--link-color);
-    text-decoration: none;
+.button-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
-div#controls-wrapper section p a:hover {
-    text-decoration: underline;
+#share-url {
+    background-color: var(--share-button-bg, #007AFF);
+    color: var(--button-text);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#share-url:hover {
+    background-color: var(--share-button-hover-bg, #0063CC);
+    transform: translateY(-1px);
 }
 
 div#controls-wrapper input#run-meeting-button {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 16px 0;
     z-index: 99;
-    margin: 16px auto;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 8px 24px;
     color: var(--button-text);
     background: var(--button-bg);
@@ -164,10 +183,10 @@ div#controls-wrapper input#run-meeting-button:hover {
 textarea#agenda {
     width: 100%;
     height: 100%;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Monaco, 'Cascadia Code', 'Source Code Pro', Consolas, monospace;
     font-size: 24px;
     font-weight: 500;
     line-height: 1.5;
-    font-family: 'SF Mono', Consolas, Monaco, monospace;
     padding: 16px;
     box-sizing: border-box;
     border: 1px solid var(--border-color);
@@ -179,6 +198,7 @@ textarea#agenda {
     -webkit-app-region: no-drag;
     background-color: var(--textarea-bg);
     color: var(--text-color);
+    transition: border-color 0.2s ease-in-out;
 }
 
 textarea#agenda:focus {
@@ -187,16 +207,19 @@ textarea#agenda:focus {
 }
 
 div#ticker {
+    display: none;
     position: fixed;
     top: 0;
-    bottom: 0;
     left: 0;
     right: 0;
-    display: none;
-    background-color: var(--ticker-bg);
-    z-index: 1000;
-    padding: 20px;
+    bottom: 0;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: monospace;
+    font-size: 48px;
+    padding: 24px;
     overflow-y: auto;
+    z-index: 100;
 }
 
 div#ticker div.agenda-item {
@@ -211,8 +234,8 @@ div#ticker div.agenda-item {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-div#ticker div.agenda-item.finished {
-    background-color: var(--ticker-item-finished-bg);
+div#ticker div.ticker-item.finished {
+    background: var(--textarea-bg);
     opacity: 0.7;
 }
 
@@ -322,33 +345,17 @@ a#close-ticker:hover {
 }
 
 /* URL Sharing styles */
-.share-button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    margin-right: 10px;
-    transition: background-color 0.3s ease;
-}
-
-.share-button:hover {
-    background-color: var(--button-hover-bg);
-}
 
 .share-message {
+    display: none;
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--success-bg, #4CAF50);
-    color: var(--success-text, white);
+    top: 20px;
+    right: 20px;
+    background-color: var(--success-bg);
+    color: var(--success-text);
     padding: 10px 20px;
     border-radius: 5px;
     z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 /* Make the app feel more native */
@@ -514,4 +521,17 @@ a#close-ticker:hover {
     div#textarea-wrapper {
         padding-top: env(safe-area-inset-top);
     }
+}
+
+div#controls-wrapper div#blurb ul li a,
+div#controls-wrapper section p a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+div#controls-wrapper div#blurb ul li a:hover,
+div#controls-wrapper section p a:hover {
+    color: var(--link-color);
+    text-decoration: underline;
 }

@@ -52,58 +52,20 @@ let Agenda = {
     }
 };
 
-function drawSampleAgenda(event) {
-    let item;
-    const topics = ["This is Time My Talk!",
-        "List your agenda items",
-        "Times are local, 24-hour clock, HH:mm",
-        "Put the FINISH time last",
-        "Then click 'GO!'",
-        "Use it to run meetings,",
-        "for giving talks and presentations,",
-        "or whatever you like, really :)"];
-    const time = new Date();
-    const items = [];
-    time.setMinutes(time.getMinutes() - 5);
-    for (let i = 0; i < 8; i++) {
-        item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " " + topics[i];
-        items.push(item);
-        time.setMinutes(time.getMinutes() + 2);
+function loadFromHash() {
+    if (window.location.hash) {
+        try {
+            let encodedText = window.location.hash.substring(1); // Remove the # symbol
+            let decodedText = decodeURIComponent(atob(encodedText));
+            $("#agenda").val(decodedText);
+            return true;
+        } catch (e) {
+            console.warn("Failed to decode hash:", e);
+            return false;
+        }
     }
-    item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " FINISH";
-    items.push(item);
-    let agenda = items.join("\n");
-    $("#agenda").html(agenda);
-    if (event && event.preventDefault) event.preventDefault();
     return false;
 }
-
-function draw45MinuteTalk(event) {
-    $("#agenda").html(`00:00 Intro and welcome
-05:00 Context: why are database deployments hard?
-08:00 Rolling forward, rolling back
-13:00 Schema management
-18:00 Working with static data and lookup data
-25:00 Live demonstration
-40:00 Conclusion and next steps
-45:00 FINISH`);
-    event.preventDefault();
-    return false;
-}
-
-function drawLightningTalk(event) {
-    $("#agenda").html(`00:00 Introduction to lightning talks
-00:30 How I learned to love three-minute talks
-01:00 The history of pecha kucha
-01:30 Rehearsal tips for lightning talks
-02:00 Scheduling tips
-02:30 Funny stories
-03:00 FINISH`);
-    event.preventDefault();
-    return false;
-}
-
-let startTime;
 
 function makeTicker(agenda) {
     let $ticker = $("#ticker");
@@ -362,17 +324,29 @@ $(function () {
     // Initialize theme manager
     ThemeManager.initialize();
 
-    // if (!loadUrlHash()) 
-    drawSampleAgenda();
+    // Try to load from hash, otherwise show default agenda
+    if (!loadFromHash()) {
+        // Load a default agenda
+        let defaultAgenda = "00:00 This is Time My Talk!\n" +
+                          "15:05 List your agenda items\n" +
+                          "15:10 Times are local, 24-hour clock, HH:mm\n" +
+                          "15:15 Put the FINISH time last\n" +
+                          "15:20 Then click 'GO!'\n" +
+                          "15:25 Use it to run meetings,\n" +
+                          "15:30 for giving talks and presentations,\n" +
+                          "15:35 or whatever you like, really :)\n" +
+                          "15:40 FINISH";
+        $("#agenda").val(defaultAgenda);
+    }
+
     window.addEventListener("resize", function () {
         if (window.running) runMeeting();
     }, false);
-    // $("#agenda").on("keyup", saveToUrlHash);
 
-    // Use event delegation for example links
-    $("#controls-wrapper").on("click", "a#lightning-talk", drawLightningTalk);
-    $("#controls-wrapper").on("click", "a#45-minute-talk", draw45MinuteTalk);
-    $("#controls-wrapper").on("click", "a#absolute-example", drawSampleAgenda);
+    // Handle hash changes
+    window.addEventListener("hashchange", function() {
+        loadFromHash();
+    }, false);
 
     $("a#close-ticker").click(stopMeeting);
     $("#run-meeting-button").click(runMeeting);

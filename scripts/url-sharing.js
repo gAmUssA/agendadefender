@@ -91,24 +91,18 @@ const UrlSharing = (() => {
         const textarea = document.getElementById('agenda');
         const controlsWrapper = document.getElementById('controls-wrapper');
         const runButton = document.getElementById('run-meeting-button');
+        const shareButton = document.getElementById('share-url');
         
-        if (!textarea || !controlsWrapper || !runButton) {
+        if (!textarea || !controlsWrapper || !runButton || !shareButton) {
             return;
         }
-
-        // Create share button
-        const shareButton = document.createElement('button');
-        shareButton.id = 'share-url-button';
-        shareButton.textContent = 'Share URL';
-        shareButton.className = 'share-button';
-        runButton.parentNode.insertBefore(shareButton, runButton);
 
         // Create message element
         const message = document.createElement('div');
         message.id = 'share-message';
         message.className = 'share-message';
         message.style.display = 'none';
-        shareButton.parentNode.insertBefore(message, shareButton.nextSibling);
+        document.body.appendChild(message);
 
         // Load initial content
         const loadInitialContent = () => {
