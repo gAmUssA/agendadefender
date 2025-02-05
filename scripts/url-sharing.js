@@ -35,14 +35,23 @@ const UrlSharing = (() => {
         }
     };
 
-    // Shorten URL using TinyURL API
+    // Shorten URL using Cloudflare Worker
     const shortenUrl = async (url) => {
         try {
-            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+            const response = await fetch('https://url-shortener.viktor-gamov.workers.dev', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url })
+            });
+
             if (!response.ok) {
-                throw new Error('Failed to shorten URL');
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to shorten URL');
             }
-            const shortUrl = await response.text();
+
+            const { shortUrl } = await response.json();
             Analytics.trackUrlShortened();
             return shortUrl;
         } catch (error) {
@@ -132,19 +141,11 @@ const UrlSharing = (() => {
 
                 const shortUrl = await shortenUrl(url);
                 if (shortUrl) {
-                    const success = await copyToClipboard(shortUrl);
-                    if (success) {
-                        message.textContent = 'Short URL copied to clipboard!';
-                    } else {
-                        message.textContent = 'Failed to copy URL to clipboard';
-                    }
+                    await copyToClipboard(shortUrl);
+                    message.textContent = 'Short URL copied to clipboard!';
                 } else {
-                    const success = await copyToClipboard(url);
-                    if (success) {
-                        message.textContent = 'URL copied to clipboard! (URL shortening failed)';
-                    } else {
-                        message.textContent = 'Failed to copy URL';
-                    }
+                    await copyToClipboard(url);
+                    message.textContent = 'URL copied to clipboard! (URL shortening failed)';
                 }
 
                 // Hide message after 2 seconds

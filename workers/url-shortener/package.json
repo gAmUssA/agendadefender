@@ -1,0 +1,13 @@
+{
+  "name": "url-shortener-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for URL shortening using Rebrandly",
+  "main": "src/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

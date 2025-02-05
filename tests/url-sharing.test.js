@@ -277,12 +277,12 @@ describe('URL Sharing Module', () => {
 
         test('should shorten URL and track event', async () => {
             const longUrl = 'http://example.com/very/long/url';
-            const shortUrl = 'http://tinyurl.com/abc123';
+            const shortUrl = 'https://gamov.dev/abc123';
 
             global.fetch.mockImplementationOnce(() =>
                 Promise.resolve({
                     ok: true,
-                    text: () => Promise.resolve(shortUrl)
+                    json: () => Promise.resolve({ shortUrl })
                 })
             );
 
@@ -293,7 +293,8 @@ describe('URL Sharing Module', () => {
         test('should handle shortening errors and track them', async () => {
             global.fetch.mockImplementationOnce(() =>
                 Promise.resolve({
-                    ok: false
+                    ok: false,
+                    json: () => Promise.resolve({ error: 'Failed to shorten URL' })
                 })
             );
 
@@ -409,7 +410,7 @@ describe('URL Sharing Module', () => {
             global.fetch.mockImplementationOnce(() =>
                 Promise.resolve({
                     ok: true,
-                    text: () => Promise.resolve('https://tinyurl.com/abc123')
+                    json: () => Promise.resolve({ shortUrl: 'https://gamov.dev/abc123' })
                 })
             );
 

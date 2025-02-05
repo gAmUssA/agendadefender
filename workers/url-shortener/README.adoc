@@ -1,0 +1,165 @@
+= URL Shortener Cloudflare Worker
+:toc: left
+:icons: font
+:source-highlighter: highlight.js
+:experimental:
+
+A Cloudflare Worker that provides a secure proxy for the Rebrandly URL shortening API.
+
+== Setup
+
+=== Prerequisites
+* Node.js 18 or higher
+* npm or yarn
+* Cloudflare account
+* Rebrandly account with API key
+
+=== Installation
+
+[source,bash]
+----
+npm install
+----
+
+=== Environment Configuration
+
+==== GitHub Secrets
+. Navigate to your GitHub repository settings
+. Go to "Secrets and variables" → "Actions"
+. Add the following secrets:
+* `CF_API_TOKEN`: Your Cloudflare API token
+* `REBRANDLY_API_KEY`: Your Rebrandly API key
+
+Using GitHub CLI:
+[source,bash]
+----
+# Add Cloudflare API token
+gh secret set CF_API_TOKEN --body "your-cloudflare-api-token"
+
+# Add Rebrandly API key
+gh secret set REBRANDLY_API_KEY --body "your-rebrandly-api-key"
+----
+
+==== Cloudflare Configuration
+[source,bash]
+----
+# Set your Rebrandly API key
+wrangler secret put REBRANDLY_API_KEY
+
+# Set your custom domain (if different from wrangler.toml)
+wrangler secret put DOMAIN
+----
+
+== Development
+
+=== Local Development Server
+[source,bash]
+----
+make dev
+----
+
+=== Manual Deployment
+[source,bash]
+----
+make deploy
+----
+
+=== Automatic Deployment
+The worker automatically deploys when changes are pushed to the main branch in:
+
+* `workers/url-shortener/**`
+* `.github/workflows/deploy-worker.yml`
+
+== API Reference
+
+=== Endpoint
+`POST https://url-shortener.your-worker-subdomain.workers.dev`
+
+=== Request Format
+[source,javascript]
+----
+const response = await fetch('https://url-shortener.your-worker-subdomain.workers.dev', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        url: 'https://example.com/long-url'
+    })
+});
+
+const { shortUrl } = await response.json();
+----
+
+=== Response Format
+
+Success Response (200 OK):
+[source,json]
+----
+{
+    "shortUrl": "https://your.domain/abc123"
+}
+----
+
+Error Response (4xx/5xx):
+[source,json]
+----
+{
+    "error": "Error message description"
+}
+----
+
+== Error Handling
+
+[cols="1,2,2", options="header"]
+|===
+|Status Code |Description |Example
+
+|405
+|Method Not Allowed
+|Request method other than POST
+
+|400
+|Bad Request
+|Invalid URL format
+
+|500
+|Internal Server Error
+|API communication error
+|===
+
+== CORS Support
+
+The worker includes CORS headers for cross-origin requests:
+
+* `Access-Control-Allow-Origin: *`
+* `Access-Control-Allow-Methods: GET, POST, OPTIONS`
+* `Access-Control-Allow-Headers: Content-Type`
+
+== Available Commands
+
+[cols="1,2", options="header"]
+|===
+|Command |Description
+
+|`make install`
+|📦 Install dependencies
+
+|`make dev`
+|🔧 Start development server
+
+|`make deploy`
+|🚀 Deploy worker to Cloudflare
+
+|`make help`
+|✨ Show help message
+|===
+
+== Security Considerations
+
+. API keys are stored securely:
+* In GitHub Secrets for CI/CD
+* In Cloudflare Worker Secrets for runtime
+. Request validation prevents malformed URLs
+. Rate limiting via Cloudflare's platform
+. CORS headers for secure cross-origin requests
