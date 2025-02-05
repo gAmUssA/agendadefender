@@ -11,7 +11,7 @@ describe('URL Sharing Module', () => {
         jest.spyOn(window.localStorage, 'setItem');
         jest.spyOn(window.localStorage, 'clear');
         jest.spyOn(window.localStorage, 'removeItem');
-        
+
         // Mock clipboard API
         Object.defineProperty(window.navigator, 'clipboard', {
             value: {
@@ -27,17 +27,17 @@ describe('URL Sharing Module', () => {
     beforeEach(() => {
         // Reset modules before tests
         jest.resetModules();
-        
+
         // Clear mocks and storage
         jest.clearAllMocks();
         localStorage.clear();
         window.location.hash = '';
-        
+
         // Reset fetch mock
         if (global.fetch) {
             global.fetch.mockClear();
         }
-        
+
         // Set up DOM with minimal required elements
         document.body.innerHTML = `
             <textarea id="agenda"></textarea>
@@ -50,13 +50,13 @@ describe('URL Sharing Module', () => {
             </div>
             <div id="ticker"></div>
         `;
-        
+
         // Set up localStorage with initial content for tests that need it
         localStorage.setItem('agenda_text', mockText);
-        
+
         // Set readyState to complete to ensure immediate initialization
-        Object.defineProperty(document, 'readyState', { value: 'complete', writable: true });
-        
+        Object.defineProperty(document, 'readyState', {value: 'complete', writable: true});
+
         // Load and initialize the module
         urlSharing = require('../scripts/url-sharing.js');
     });
@@ -65,7 +65,7 @@ describe('URL Sharing Module', () => {
         if (global.fetch) {
             global.fetch.mockClear();
         }
-        
+
         window.location.hash = '';
     });
 
@@ -146,10 +146,10 @@ describe('URL Sharing Module', () => {
             localStorage.getItem = jest.fn(() => {
                 throw new Error('Storage error');
             });
-            
+
             const result = urlSharing.loadFromStorage();
             expect(result).toBeNull();
-            
+
             // Restore original getItem
             localStorage.getItem = originalGetItem;
         });
@@ -183,7 +183,7 @@ describe('URL Sharing Module', () => {
         test('should shorten URL and track event', async () => {
             const longUrl = 'http://example.com/very/long/url';
             const shortUrl = 'http://tinyurl.com/abc123';
-            
+
             global.fetch.mockImplementationOnce(() =>
                 Promise.resolve({
                     ok: true,
@@ -220,7 +220,7 @@ describe('URL Sharing Module', () => {
         test('should create share button and message elements', () => {
             const shareButton = document.getElementById('share-url-button');
             const message = document.getElementById('share-message');
-            
+
             expect(shareButton).toBeTruthy();
             expect(message).toBeTruthy();
             expect(shareButton.textContent).toBe('Share URL');
@@ -232,28 +232,28 @@ describe('URL Sharing Module', () => {
             const textarea = document.getElementById('agenda');
             textarea.value = mockText;
             textarea.dispatchEvent(new Event('input'));
-            
+
             expect(localStorage.setItem).toHaveBeenCalledWith(urlSharing.STORAGE_KEY, mockText);
         });
 
         test('should save to localStorage when clicking GO button', () => {
             const textarea = document.getElementById('agenda');
             const goButton = document.getElementById('run-meeting-button');
-            
+
             textarea.value = mockText;
             goButton.click();
-            
+
             expect(localStorage.setItem).toHaveBeenCalledWith(urlSharing.STORAGE_KEY, mockText);
         });
 
         test('should load initial content from URL hash', async () => {
             const encoded = btoa(encodeURIComponent(mockText));
             window.location.hash = encoded;
-            
+
             // Load the module again to trigger initialization
             jest.resetModules();
             urlSharing = require('../scripts/url-sharing.js');
-            
+
             const textarea = document.getElementById('agenda');
             await new Promise(resolve => setTimeout(resolve, 0));
             expect(textarea.value).toBe(mockText);
@@ -264,7 +264,7 @@ describe('URL Sharing Module', () => {
             jest.resetModules();
             localStorage.clear();
             window.location.hash = '';
-            
+
             // Set up DOM with minimal required elements
             document.body.innerHTML = `
                 <textarea id="agenda"></textarea>
@@ -277,24 +277,24 @@ describe('URL Sharing Module', () => {
                 </div>
                 <div id="ticker"></div>
             `;
-            
+
             // Set up localStorage with initial content
             localStorage.setItem('agenda_text', mockText);
-            
+
             // Get the textarea element and verify it exists
             const textarea = document.getElementById('agenda');
             expect(textarea).toBeTruthy();
-            
+
             // Verify localStorage has the correct content
             expect(localStorage.getItem('agenda_text')).toBe(mockText);
-            
+
             // Set readyState to complete and initialize module
-            Object.defineProperty(document, 'readyState', { value: 'complete', writable: true });
+            Object.defineProperty(document, 'readyState', {value: 'complete', writable: true});
             urlSharing = require('../scripts/url-sharing.js');
-            
+
             // Wait for any async operations
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Verify the content is loaded
             expect(textarea.value).toBe(mockText);
         });
@@ -304,10 +304,10 @@ describe('URL Sharing Module', () => {
             const textarea = document.getElementById('agenda');
             const shareButton = document.getElementById('share-url-button');
             const message = document.getElementById('share-message');
-            
+
             // Set initial text
             textarea.value = mockText;
-            
+
             // Mock clipboard and URL shortening failure
             navigator.clipboard.writeText.mockImplementation(() => Promise.resolve(true));
             global.fetch = jest.fn().mockImplementation(() =>
@@ -315,24 +315,24 @@ describe('URL Sharing Module', () => {
                     ok: false
                 })
             );
-            
+
             // Click the share button and wait for async operations
             shareButton.click();
-            
+
             // Wait for the async operations to complete
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Verify clipboard was called with the correct URL
             const encoded = btoa(encodeURIComponent(mockText));
             const expectedUrl = window.location.href + '#' + encoded;
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expectedUrl);
             expect(message.textContent).toBe('URL copied to clipboard! (URL shortening failed)');
             expect(message.style.display).toBe('block');
-            
+
             // Wait for message to be hidden
             await new Promise(resolve => setTimeout(resolve, 2100));
             expect(message.style.display).toBe('none');
-            
+
             // Clean up
             delete global.fetch;
         }, 10000);
@@ -342,10 +342,10 @@ describe('URL Sharing Module', () => {
             const textarea = document.getElementById('agenda');
             const shareButton = document.getElementById('share-url-button');
             const message = document.getElementById('share-message');
-            
+
             // Set initial text
             textarea.value = mockText;
-            
+
             // Mock clipboard and URL shortening
             navigator.clipboard.writeText.mockImplementation(() => Promise.resolve(true));
             global.fetch = jest.fn().mockImplementation(() =>
@@ -354,22 +354,22 @@ describe('URL Sharing Module', () => {
                     text: () => Promise.resolve('https://tinyurl.com/abc123')
                 })
             );
-            
+
             // Click the share button and wait for async operations
             shareButton.click();
-            
+
             // Wait for the async operations to complete
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Verify the short URL was copied
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith('https://tinyurl.com/abc123');
             expect(message.textContent).toBe('Short URL copied to clipboard!');
             expect(message.style.display).toBe('block');
-            
+
             // Wait for message to be hidden
             await new Promise(resolve => setTimeout(resolve, 2100));
             expect(message.style.display).toBe('none');
-            
+
             // Clean up
             delete global.fetch;
         });
@@ -379,10 +379,10 @@ describe('URL Sharing Module', () => {
             const textarea = document.getElementById('agenda');
             const shareButton = document.getElementById('share-url-button');
             const message = document.getElementById('share-message');
-            
+
             // Set initial text
             textarea.value = mockText;
-            
+
             // Mock clipboard and URL shortening failure
             navigator.clipboard.writeText.mockImplementation(() => Promise.resolve(true));
             global.fetch = jest.fn().mockImplementation(() =>
@@ -390,24 +390,24 @@ describe('URL Sharing Module', () => {
                     ok: false
                 })
             );
-            
+
             // Click the share button and wait for async operations
             shareButton.click();
-            
+
             // Wait for the async operations to complete
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Verify the original URL was copied as fallback
             const encoded = btoa(encodeURIComponent(mockText));
             const expectedUrl = window.location.href + '#' + encoded;
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expectedUrl);
             expect(message.textContent).toBe('URL copied to clipboard! (URL shortening failed)');
             expect(message.style.display).toBe('block');
-            
+
             // Wait for message to be hidden
             await new Promise(resolve => setTimeout(resolve, 2100));
             expect(message.style.display).toBe('none');
-            
+
             // Clean up
             delete global.fetch;
         });

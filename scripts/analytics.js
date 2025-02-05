@@ -16,7 +16,7 @@ const Analytics = {
 
     // Timer events
     trackTimerStart: function(timerType) {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
                 umami.track('Timer Started', { timerType });
             } catch (e) {
@@ -26,11 +26,11 @@ const Analytics = {
     },
 
     trackTimerStop: function(timerType, duration) {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
                 umami.track('Timer Stopped', { 
                     timerType,
-                    duration: Math.floor(duration / 1000) // Convert to seconds
+                    duration: duration ? Math.floor(duration) : NaN // Convert to seconds if duration exists
                 });
             } catch (e) {
                 console.debug('Failed to track timer stop:', e);
@@ -40,7 +40,7 @@ const Analytics = {
 
     // Theme events
     trackThemeChange: function(newTheme) {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
                 umami.track('Theme Changed', { theme: newTheme });
             } catch (e) {
@@ -49,9 +49,9 @@ const Analytics = {
         }
     },
 
-    // URL sharing events
+    // URL events
     trackUrlGenerated: function(textLength) {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
                 umami.track('URL Generated', { textLength });
             } catch (e) {
@@ -61,7 +61,7 @@ const Analytics = {
     },
 
     trackUrlCopied: function() {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
                 umami.track('URL Copied');
             } catch (e) {
@@ -71,7 +71,7 @@ const Analytics = {
     },
 
     trackUrlShortened: function() {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
                 umami.track('URL Shortened');
             } catch (e) {
@@ -82,9 +82,9 @@ const Analytics = {
 
     // Error events
     trackError: function(errorType, errorMessage) {
-        if (this.isUmamiAvailable) {
+        if (typeof window !== 'undefined' && window.umami) {
             try {
-                umami.track('Error Occurred', { 
+                umami.track('Error Occurred', {
                     errorType,
                     errorMessage
                 });
@@ -100,7 +100,7 @@ if (typeof window !== 'undefined') {
     Analytics.init();
 }
 
-// Export for Node.js environment (tests)
+// Export for tests
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = Analytics;
 }

@@ -106,60 +106,6 @@ function drawLightningTalk(event) {
 let startTime;
 
 function makeTicker(agenda) {
-    startTime = new Date();
-    let currentItemIndex = 0;
-
-    return function() {
-        let now = new Date();
-        let currentItem = null;
-
-        // Find the current agenda item
-        while (currentItemIndex < agenda.length) {
-            let item = agenda[currentItemIndex];
-            if (now < item.concludesAt) {
-                currentItem = item;
-                break;
-            }
-            currentItemIndex++;
-        }
-
-        if (currentItem) {
-            let timeLeft = currentItem.concludesAt - now;
-            let minutes = Math.floor(timeLeft / 60000);
-            let seconds = Math.floor((timeLeft % 60000) / 1000);
-            
-            // Update progress bar
-            let totalTime = currentItem.concludesAt - currentItem.commencesAt;
-            let progress = 100 * (1 - timeLeft / totalTime);
-            currentItem.progressBar.css("width", progress + "%");
-            
-            // Update item text
-            currentItem.element.find(".agenda-item-text")
-                .text(currentItem.text + " - " + 
-                    minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
-
-            // Mark previous items as finished
-            for (let i = 0; i < currentItemIndex; i++) {
-                agenda[i].progressBar.css("width", "100%");
-                agenda[i].element.addClass("finished");
-            }
-        } else {
-            $("#ticker").find(".agenda-item").addClass("finished");
-            $("#ticker").find(".progress-bar").css("width", "100%");
-            stopMeeting();
-        }
-    };
-}
-
-function runMeeting() {
-    let agendaString = $("#agenda").val();
-    let agenda = Agenda.parse(agendaString);
-    
-    if (!agenda || agenda.length === 0) {
-        console.error("No valid agenda items found");
-        return;
-    }
-
     let $ticker = $("#ticker");
     $ticker.html('');
 
@@ -186,11 +132,98 @@ function runMeeting() {
         $ticker.append($div);
     });
 
+    // Store last update time for smooth animation
+    let lastUpdate = Date.now();
+    let lastProgress = {};
+    agenda.forEach(item => lastProgress[item.text] = 0);
+
+    return function() {
+        let now = Date.now();
+        let deltaTime = now - lastUpdate;
+        lastUpdate = now;
+
+        let currentItemIndex = 0;
+        let currentItem = null;
+
+        // Find the current agenda item
+        while (currentItemIndex < agenda.length) {
+            let item = agenda[currentItemIndex];
+            if (now < item.concludesAt) {
+                currentItem = item;
+                break;
+            }
+            currentItemIndex++;
+        }
+
+        if (currentItem) {
+            let timeLeft = currentItem.concludesAt - now;
+            let minutes = Math.floor(timeLeft / 60000);
+            let seconds = Math.floor((timeLeft % 60000) / 1000);
+            let milliseconds = timeLeft % 1000;
+            
+            // Update progress bar with smooth interpolation
+            let totalTime = currentItem.concludesAt - currentItem.commencesAt;
+            let targetProgress = 100 * (1 - timeLeft / totalTime);
+            let currentProgress = lastProgress[currentItem.text] || 0;
+            
+            // Smoothly interpolate between current and target progress
+            let smoothProgress = currentProgress + (targetProgress - currentProgress) * (deltaTime / 100);
+            lastProgress[currentItem.text] = smoothProgress;
+            
+            currentItem.progressBar.css("width", smoothProgress + "%");
+            
+            // Update item text with subsecond precision for smoother countdown
+            let timeString = minutes + ":" + 
+                           (seconds < 10 ? "0" : "") + seconds;
+            currentItem.element.find(".agenda-item-text")
+                .text(currentItem.text + " - " + timeString);
+
+            // Add pulsing effect when 5 seconds or less remaining, but only if not finished
+            if (seconds <= 5 && minutes === 0 && timeLeft > 0) {
+                currentItem.element.addClass("pulse");
+            } else {
+                currentItem.element.removeClass("pulse");
+            }
+
+            // Mark previous items as finished
+            for (let i = 0; i < currentItemIndex; i++) {
+                agenda[i].progressBar.css("width", "100%");
+                agenda[i].element.addClass("finished").removeClass("pulse");
+                lastProgress[agenda[i].text] = 100;
+            }
+        } else {
+            // All items finished
+            $("#ticker").find(".agenda-item").addClass("finished").removeClass("pulse");
+            $("#ticker").find(".progress-bar").css("width", "100%");
+            agenda.forEach(item => lastProgress[item.text] = 100);
+            stopMeeting();
+        }
+    };
+}
+
+function runMeeting() {
+    let agendaString = $("#agenda").val();
+    let agenda = Agenda.parse(agendaString);
+    
+    if (!agenda || agenda.length === 0) {
+        console.error("No valid agenda items found");
+        return;
+    }
+
+    let $ticker = $("#ticker");
+    $ticker.html('');
+
+    // Track timer start
+    Analytics.trackTimerStart('meeting');
+    startTime = new Date();
+
+    let tickerUpdate = makeTicker(agenda);
     $("#ticker").show();
     $("a#close-ticker").show();
-    window.ticker = window.setInterval(makeTicker(agenda), 100);
+    window.ticker = window.setInterval(tickerUpdate, 50); // Update more frequently for smoother animation
     window.running = true;
-    Analytics.trackTimerStart('meeting');
+    $("#run-meeting-button").val("STOP!");
+    $("#run-meeting-button").addClass("stop");
 
     // Add resize handler to adjust font size when window is resized
     $(window).on('resize.agendaDefender', function () {
@@ -210,6 +243,8 @@ function stopMeeting() {
     window.running = false;
     $("#ticker").hide();
     $("a#close-ticker").hide();
+    $("#run-meeting-button").val("GO!");
+    $("#run-meeting-button").removeClass("stop");
     
     // Calculate elapsed time in seconds
     let elapsedTime = Math.floor((new Date() - startTime) / 1000);
