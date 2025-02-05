@@ -137,7 +137,7 @@ describe('Agenda Defender', () => {
 
         // Clear any previous module cache
         jest.resetModules();
-        
+
         // Load the module
         AgendaDefender = require('../scripts/agenda-defender.js');
     });
@@ -183,12 +183,160 @@ describe('Agenda Defender', () => {
         });
     });
 
+    describe('Sample Agenda', () => {
+        test('should handle Scheduled Meeting link click and direct call', async () => {
+            // Set up the DOM with required elements
+            document.body.innerHTML = `
+                <textarea id="agenda"></textarea>
+                <a id="scheduled-meeting" href="#">Sample Agenda</a>
+            `;
+
+            // Mock Date to have consistent test results
+            const mockTime = new Date('2024-01-01T14:30:00').getTime();
+            const realDate = global.Date;
+            global.Date = class extends Date {
+                constructor() {
+                    super();
+                    return new realDate(mockTime);
+                }
+                static now() {
+                    return mockTime;
+                }
+            };
+
+            // Initialize jQuery and load module
+            window.$ = window.jQuery = require('../scripts/jquery-3.3.1.min.js');
+
+            // Mock matchMedia
+            window.matchMedia = jest.fn().mockImplementation(query => ({
+                matches: false,
+                media: query,
+                onchange: null,
+                addListener: jest.fn(),
+                removeListener: jest.fn(),
+                addEventListener: jest.fn(),
+                removeEventListener: jest.fn(),
+                dispatchEvent: jest.fn(),
+            }));
+
+            // Mock UrlSharing
+            window.UrlSharing = {
+                loadUrlHash: jest.fn().mockReturnValue(null),
+                loadFromStorage: jest.fn().mockReturnValue(null),
+                saveToStorage: jest.fn(),
+                STORAGE_KEY: 'agenda_text'
+            };
+
+            // Reset modules to ensure clean state
+            jest.resetModules();
+
+            // Load and initialize the module
+            const AgendaDefender = require('../scripts/agenda-defender.js');
+            const { drawSampleAgenda } = AgendaDefender;
+
+            // Trigger DOMContentLoaded to initialize event handlers
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // Test direct function call
+            drawSampleAgenda();
+            let agendaText = document.getElementById('agenda').value;
+            expect(agendaText).toContain('This is Agenda Defender!');
+            expect(agendaText.split('\n').length).toBe(9);
+
+            // Clear textarea
+            document.getElementById('agenda').value = '';
+
+            // Test click event
+            const link = document.getElementById('scheduled-meeting');
+            const clickEvent = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            link.dispatchEvent(clickEvent);
+
+            // Add small delay to allow for any async operations
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verify click result
+            agendaText = document.getElementById('agenda').value;
+            expect(agendaText).toContain('This is Agenda Defender!');
+            expect(agendaText.split('\n').length).toBe(9);
+
+            // Restore Date
+            global.Date = realDate;
+
+            // Verify that agenda was generated
+            expect(agendaText).toContain('This is Agenda Defender!');
+            expect(agendaText.split('\n').length).toBe(9); // 8 items + FINISH
+        });
+
+        test('should generate sample agenda with correct format', () => {
+            // Mock Date to have consistent test results
+            const mockTime = new Date('2024-01-01T14:30:00').getTime();
+            const realDate = global.Date;
+            global.Date = class extends Date {
+                constructor() {
+                    super();
+                    return new realDate(mockTime);
+                }
+                static now() {
+                    return mockTime;
+                }
+            };
+
+            // Call drawSampleAgenda
+            AgendaDefender.drawSampleAgenda();
+
+            // Get the agenda text
+            const agendaText = document.getElementById('agenda').value;
+            const lines = agendaText.split('\n');
+
+            // Restore Date
+            global.Date = realDate;
+
+            // Verify number of items (8 topics + FINISH)
+            expect(lines.length).toBe(9);
+
+            // Verify time format and intervals
+            const timeRegex = /^(\d{2}):(\d{2})/;
+            let previousTime = null;
+            lines.forEach((line, index) => {
+                const match = timeRegex.exec(line);
+                expect(match).toBeTruthy();
+
+                const currentTime = new Date();
+                currentTime.setHours(parseInt(match[1]));
+                currentTime.setMinutes(parseInt(match[2]));
+
+                if (previousTime) {
+                    const timeDiff = (currentTime - previousTime) / (1000 * 60); // difference in minutes
+                    expect(timeDiff).toBeCloseTo(2, 1); // 2-minute intervals, allowing small precision differences
+                }
+                previousTime = currentTime;
+            });
+
+            // Verify content
+            expect(lines[0]).toMatch(/This is Agenda Defender!/);
+            expect(lines[lines.length - 1]).toMatch(/FINISH$/);
+        });
+
+        test('should handle event prevention', () => {
+            const mockEvent = {
+                preventDefault: jest.fn()
+            };
+            const result = AgendaDefender.drawSampleAgenda(mockEvent);
+            expect(mockEvent.preventDefault).toHaveBeenCalled();
+            expect(result).toBe(false);
+        });
+    });
+
     describe('Theme Management', () => {
         test('should initialize theme manager', () => {
             // Load the module again to trigger initialization
             jest.resetModules();
             AgendaDefender = require('../scripts/agenda-defender.js');
-            
+
             // Check if theme toggle button exists
             const themeToggle = document.getElementById('theme-toggle');
             expect(themeToggle).toBeTruthy();

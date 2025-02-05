@@ -319,16 +319,7 @@ $(function () {
             $("#agenda").val(storageText);
         } else {
             // Load a default agenda
-            let defaultAgenda = "00:00 This is Time My Talk!\n" +
-                "15:05 List your agenda items\n" +
-                "15:10 Times are local, 24-hour clock, HH:mm\n" +
-                "15:15 Put the FINISH time last\n" +
-                "15:20 Then click 'GO!'\n" +
-                "15:25 Use it to run meetings,\n" +
-                "15:30 for giving talks and presentations,\n" +
-                "15:35 or whatever you like, really :)\n" +
-                "15:40 FINISH";
-            $("#agenda").val(defaultAgenda);
+            drawSampleAgenda();
         }
     }
 
@@ -345,13 +336,48 @@ $(function () {
     }, false);
 
     $("a#close-ticker").click(stopMeeting);
+
     $("#run-meeting-button").click(runMeeting);
+    document.getElementById('scheduled-meeting')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        drawSampleAgenda();
+        return false;
+    });
+
     $(document).on('keyup', function (e) {
-        if (e.key == "Escape") stopMeeting();
+        if (e.key === "Escape") stopMeeting();
     });
 });
 
 // Export for testing
+function drawSampleAgenda(event) {
+    console.log('[DEBUG_LOG] drawSampleAgenda called', event);
+    console.log('[DEBUG_LOG] Textarea element:', document.getElementById('agenda'));
+    let item;
+    let topics = ["This is Agenda Defender!",
+        "List your agenda items",
+        "Times are local, 24-hour clock, HH:mm",
+        "Put the FINISH time last",
+        "Then click 'GO!'",
+        "Use it to run meetings,",
+        "for giving talks and presentations,",
+        "or whatever you like, really :)"];
+    let time = new Date();
+    let items = [];
+    time.setMinutes(time.getMinutes() - 5);
+    for (let i = 0; i < topics.length; i++) {
+        item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " " + topics[i];
+        items.push(item);
+        time.setMinutes(time.getMinutes() + 2);
+    }
+    item = time.getHours().toString().padStart(2, '0') + ":" + time.getMinutes().toString().padStart(2, '0') + " FINISH";
+    items.push(item);
+    let agenda = items.join("\n");
+    $("#agenda").val(agenda);
+    if (event && event.preventDefault) event.preventDefault();
+    return false;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {AgendaItem, Agenda};
+    module.exports = {AgendaItem, Agenda, drawSampleAgenda};
 }
