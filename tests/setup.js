@@ -190,3 +190,19 @@ global.console = {
     info: jest.fn(),
     debug: jest.fn()
 };
+
+// Mock Umami analytics
+global.umami = {
+    track: jest.fn()
+};
+
+// Mock Analytics module
+global.Analytics = {
+    trackTimerStart: jest.fn(),
+    trackTimerStop: jest.fn(),
+    trackThemeChange: jest.fn(),
+    trackUrlGenerated: jest.fn(),
+    trackUrlCopied: jest.fn(),
+    trackUrlShortened: jest.fn(),
+    trackError: jest.fn()
+};

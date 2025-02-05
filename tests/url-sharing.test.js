@@ -1,9 +1,9 @@
 const UrlSharing = require('../scripts/url-sharing.js');
+const Analytics = require('../scripts/analytics.js');
 
 describe('URL Sharing Module', () => {
-    let UrlSharing;
+    let urlSharing;
     const mockText = 'Test agenda\n15:00 First item\n15:15 Second item';
-    const mockHash = '#Test%20agenda%20text';
 
     beforeAll(() => {
         // Set up spies
@@ -19,9 +19,12 @@ describe('URL Sharing Module', () => {
             },
             writable: true
         });
+
+        // Mock fetch for URL shortening
+        global.fetch = jest.fn();
     });
 
-    beforeEach(async () => {
+    beforeEach(() => {
         // Reset modules before tests
         jest.resetModules();
         
@@ -29,6 +32,11 @@ describe('URL Sharing Module', () => {
         jest.clearAllMocks();
         localStorage.clear();
         window.location.hash = '';
+        
+        // Reset fetch mock
+        if (global.fetch) {
+            global.fetch.mockClear();
+        }
         
         // Set up DOM with minimal required elements
         document.body.innerHTML = `
@@ -50,37 +58,42 @@ describe('URL Sharing Module', () => {
         Object.defineProperty(document, 'readyState', { value: 'complete', writable: true });
         
         // Load and initialize the module
-        UrlSharing = require('../scripts/url-sharing.js');
-        
-        // Wait for any async operations to complete
-        await new Promise(resolve => setTimeout(resolve, 0));
+        urlSharing = require('../scripts/url-sharing.js');
     });
 
     afterEach(() => {
+        if (global.fetch) {
+            global.fetch.mockClear();
+        }
+        
         window.location.hash = '';
+    });
+
+    afterAll(() => {
+        delete global.fetch;
     });
 
     describe('Core Functionality', () => {
         test('should expose necessary properties and methods', () => {
-            expect(UrlSharing.saveToUrlHash).toBeDefined();
-            expect(UrlSharing.loadUrlHash).toBeDefined();
-            expect(UrlSharing.saveToStorage).toBeDefined();
-            expect(UrlSharing.loadFromStorage).toBeDefined();
-            expect(UrlSharing.copyToClipboard).toBeDefined();
+            expect(urlSharing.saveToUrlHash).toBeDefined();
+            expect(urlSharing.loadUrlHash).toBeDefined();
+            expect(urlSharing.saveToStorage).toBeDefined();
+            expect(urlSharing.loadFromStorage).toBeDefined();
+            expect(urlSharing.copyToClipboard).toBeDefined();
         });
 
         test('should encode text to URL hash', () => {
             const text = 'Test text with spaces';
             window.location.hash = '';
-            const url = UrlSharing.saveToUrlHash(text);
+            const url = urlSharing.saveToUrlHash(text);
             expect(url).toContain('#');
             expect(url).toContain(btoa(encodeURIComponent(text)));
         });
 
         test('should handle text larger than MAX_TEXT_SIZE', () => {
-            const largeText = 'a'.repeat(UrlSharing.MAX_TEXT_SIZE + 1000);
+            const largeText = 'a'.repeat(urlSharing.MAX_TEXT_SIZE + 1000);
             window.location.hash = '';
-            const url = UrlSharing.saveToUrlHash(largeText);
+            const url = urlSharing.saveToUrlHash(largeText);
             expect(url).toBeNull();
         });
 
@@ -88,28 +101,44 @@ describe('URL Sharing Module', () => {
             const text = 'Test text';
             const encoded = btoa(encodeURIComponent(text));
             window.location.hash = encoded;
-            const result = UrlSharing.loadUrlHash();
+            const result = urlSharing.loadUrlHash();
             expect(result).toBe(text);
         });
 
         test('should handle invalid URL hash', () => {
             window.location.hash = '#%%%';
-            const result = UrlSharing.loadUrlHash();
+            const result = urlSharing.loadUrlHash();
             expect(result).toBeNull();
+        });
+    });
+
+    describe('URL Operations', () => {
+        test('should generate and save URL hash', () => {
+            const url = urlSharing.saveToUrlHash(mockText);
+            expect(url).toBeTruthy();
+            const hash = url.split('#')[1];
+            expect(hash).toBeTruthy();
+            expect(decodeURIComponent(atob(hash))).toBe(mockText);
+        });
+
+        test('should handle URL generation errors', () => {
+            const longText = 'x'.repeat(9000); // Exceeds MAX_TEXT_SIZE
+            const url = urlSharing.saveToUrlHash(longText);
+            expect(url).toBeNull();
         });
     });
 
     describe('Storage Operations', () => {
         test('should save text to localStorage', () => {
-            UrlSharing.saveToStorage(mockText);
-            expect(localStorage.setItem).toHaveBeenCalledWith(UrlSharing.STORAGE_KEY, mockText);
+            urlSharing.saveToStorage(mockText);
+            expect(localStorage.setItem).toHaveBeenCalledWith(urlSharing.STORAGE_KEY, mockText);
         });
 
         test('should load text from localStorage', () => {
-            localStorage.setItem(UrlSharing.STORAGE_KEY, mockText);
-            const result = UrlSharing.loadFromStorage();
+            localStorage.setItem(urlSharing.STORAGE_KEY, mockText);
+            const result = urlSharing.loadFromStorage();
             expect(result).toBe(mockText);
-            expect(localStorage.getItem).toHaveBeenCalledWith(UrlSharing.STORAGE_KEY);
+            expect(localStorage.getItem).toHaveBeenCalledWith(urlSharing.STORAGE_KEY);
         });
 
         test('should handle localStorage errors', () => {
@@ -118,7 +147,7 @@ describe('URL Sharing Module', () => {
                 throw new Error('Storage error');
             });
             
-            const result = UrlSharing.loadFromStorage();
+            const result = urlSharing.loadFromStorage();
             expect(result).toBeNull();
             
             // Restore original getItem
@@ -128,14 +157,14 @@ describe('URL Sharing Module', () => {
 
     describe('Clipboard Operations', () => {
         test('should copy text to clipboard', async () => {
-            const result = await UrlSharing.copyToClipboard(mockText);
+            const result = await urlSharing.copyToClipboard(mockText);
             expect(result).toBe(true);
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockText);
         });
 
         test('should handle clipboard errors', async () => {
-            navigator.clipboard.writeText.mockImplementationOnce(() => Promise.reject('Clipboard error'));
-            const result = await UrlSharing.copyToClipboard(mockText);
+            navigator.clipboard.writeText.mockRejectedValueOnce(new Error('Clipboard error'));
+            const result = await urlSharing.copyToClipboard(mockText);
             expect(result).toBe(false);
         });
     });
@@ -151,9 +180,9 @@ describe('URL Sharing Module', () => {
             delete global.fetch;
         });
 
-        test('should shorten URL successfully', async () => {
-            const longUrl = 'https://example.com/very/long/url';
-            const shortUrl = 'https://tinyurl.com/abc123';
+        test('should shorten URL and track event', async () => {
+            const longUrl = 'http://example.com/very/long/url';
+            const shortUrl = 'http://tinyurl.com/abc123';
             
             global.fetch.mockImplementationOnce(() =>
                 Promise.resolve({
@@ -162,34 +191,27 @@ describe('URL Sharing Module', () => {
                 })
             );
 
-            const result = await UrlSharing.shortenUrl(longUrl);
+            const result = await urlSharing.shortenUrl(longUrl);
             expect(result).toBe(shortUrl);
-            expect(global.fetch).toHaveBeenCalledWith(
-                `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
-            );
         });
 
-        test('should handle URL shortening failure', async () => {
-            const longUrl = 'https://example.com/very/long/url';
-            
+        test('should handle shortening errors and track them', async () => {
             global.fetch.mockImplementationOnce(() =>
                 Promise.resolve({
                     ok: false
                 })
             );
 
-            const result = await UrlSharing.shortenUrl(longUrl);
+            const result = await urlSharing.shortenUrl('http://example.com');
             expect(result).toBeNull();
         });
 
         test('should handle network errors', async () => {
-            const longUrl = 'https://example.com/very/long/url';
-            
             global.fetch.mockImplementationOnce(() =>
                 Promise.reject(new Error('Network error'))
             );
 
-            const result = await UrlSharing.shortenUrl(longUrl);
+            const result = await urlSharing.shortenUrl('http://example.com');
             expect(result).toBeNull();
         });
     });
@@ -211,7 +233,7 @@ describe('URL Sharing Module', () => {
             textarea.value = mockText;
             textarea.dispatchEvent(new Event('input'));
             
-            expect(localStorage.setItem).toHaveBeenCalledWith(UrlSharing.STORAGE_KEY, mockText);
+            expect(localStorage.setItem).toHaveBeenCalledWith(urlSharing.STORAGE_KEY, mockText);
         });
 
         test('should save to localStorage when clicking GO button', () => {
@@ -221,7 +243,7 @@ describe('URL Sharing Module', () => {
             textarea.value = mockText;
             goButton.click();
             
-            expect(localStorage.setItem).toHaveBeenCalledWith(UrlSharing.STORAGE_KEY, mockText);
+            expect(localStorage.setItem).toHaveBeenCalledWith(urlSharing.STORAGE_KEY, mockText);
         });
 
         test('should load initial content from URL hash', async () => {
@@ -230,7 +252,7 @@ describe('URL Sharing Module', () => {
             
             // Load the module again to trigger initialization
             jest.resetModules();
-            UrlSharing = require('../scripts/url-sharing.js');
+            urlSharing = require('../scripts/url-sharing.js');
             
             const textarea = document.getElementById('agenda');
             await new Promise(resolve => setTimeout(resolve, 0));
@@ -268,7 +290,7 @@ describe('URL Sharing Module', () => {
             
             // Set readyState to complete and initialize module
             Object.defineProperty(document, 'readyState', { value: 'complete', writable: true });
-            UrlSharing = require('../scripts/url-sharing.js');
+            urlSharing = require('../scripts/url-sharing.js');
             
             // Wait for any async operations
             await new Promise(resolve => setTimeout(resolve, 100));

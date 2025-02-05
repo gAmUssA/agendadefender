@@ -154,6 +154,7 @@ function runMeeting() {
     $("a#close-ticker").show();
     window.ticker = window.setInterval(makeTicker(agenda), 10);
     window.running = true;
+    Analytics.trackTimerStart('meeting');
 
     // Add resize handler to adjust font size when window is resized
     $(window).on('resize.agendaDefender', function () {
@@ -166,30 +167,12 @@ function runMeeting() {
     });
 }
 
-function makeTicker(agenda) {
-    return function () {
-        let now = new Date();
-        agenda.forEach(function (item, index, array) {
-            if (item.concludesAt < now) {
-                item.progressBar.hide();
-                item.element.addClass('finished');
-            }
-            if (item.commencesAt < now && item.concludesAt > now) {
-                let duration = item.concludesAt.valueOf() - item.commencesAt.valueOf();
-                let elapsed = now.valueOf() - item.commencesAt.valueOf();
-                let multiplier = elapsed / duration;
-                let newWidth = item.element.width() * multiplier;
-                item.progressBar.css("width", newWidth + "px");
-            }
-        });
-    };
-}
-
 function stopMeeting() {
     window.clearInterval(window.ticker);
     window.running = false;
     $("#ticker").hide();
     $("a#close-ticker").hide();
+    Analytics.trackTimerStop('meeting', window.ticker.getElapsedTime());
     // Remove resize handler
     $(window).off('resize.agendaDefender');
 }
@@ -208,12 +191,13 @@ const ThemeManager = {
         return theme;
     },
 
-    setTheme(theme) {
+    setTheme: function(theme) {
         console.log('🎨 Setting theme to:', theme);
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         this.applyTheme(theme);
         this.updateToggleButton(theme);
+        Analytics.trackThemeChange(theme);
     },
 
     applyTheme(theme) {

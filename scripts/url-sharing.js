@@ -12,9 +12,11 @@ const UrlSharing = (() => {
             const encoded = btoa(encodeURIComponent(text));
             const url = new URL(window.location.href);
             url.hash = encoded;
+            Analytics.trackUrlGenerated(text.length);
             return url.toString();
         } catch (error) {
             console.error('Error encoding text:', error);
+            Analytics.trackError('url_encoding', error.message);
             return null;
         }
     };
@@ -40,9 +42,12 @@ const UrlSharing = (() => {
             if (!response.ok) {
                 throw new Error('Failed to shorten URL');
             }
-            return await response.text();
+            const shortUrl = await response.text();
+            Analytics.trackUrlShortened();
+            return shortUrl;
         } catch (error) {
             console.error('Error shortening URL:', error);
+            Analytics.trackError('url_shortening', error.message);
             return null;
         }
     };
@@ -51,9 +56,11 @@ const UrlSharing = (() => {
     const copyToClipboard = async (text) => {
         try {
             await navigator.clipboard.writeText(text);
+            Analytics.trackUrlCopied();
             return true;
         } catch (error) {
             console.error('Error copying to clipboard:', error);
+            Analytics.trackError('clipboard', error.message);
             return false;
         }
     };
