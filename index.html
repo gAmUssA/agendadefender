@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="system">
+<html data-theme="system" lang="en">
 <head>
     <title>Time My Talk</title>
     <meta charset="utf-8">
@@ -13,14 +13,14 @@
     <!-- Umami Analytics -->
     <script defer src="https://cloud.umami.is/script.js" data-website-id="6380b67b-abbc-4cb2-9e91-eefe8508757a"></script>
     <script src="scripts/analytics.js"></script>
-    
+
     <!-- iOS icons -->
     <link rel="apple-touch-icon" href="icon/agenda-defender.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icon/agenda-defender.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icon/agenda-defender.png">
     <link rel="apple-touch-icon" sizes="167x167" href="icon/agenda-defender.png">
-    
-    <link type="text/css" rel="stylesheet" href="styles/styles.css" />
+
+    <link type="text/css" rel="stylesheet" href="styles/styles.css"/>
     <script>
         // Handle jQuery loading for both Electron and browser environments
         if (typeof require === 'function') {
@@ -31,41 +31,47 @@
             document.write('<script src="scripts/jquery-3.3.1.min.js"><\/script>');
         }
     </script>
-    <script src="scripts/agenda-defender.js"></script>
     <script src="scripts/url-sharing.js"></script>
+    <script src="scripts/agenda-defender.js"></script>
 </head>
 
 <body>
-    <div class="titlebar"></div>
-    <button id="theme-toggle" aria-label="Toggle theme">🌓</button>
-    <div id="textarea-wrapper">
+<div class="titlebar"></div>
+<button id="theme-toggle" aria-label="Toggle theme">🌓</button>
+<div id="textarea-wrapper">
         <textarea id="agenda" placeholder="15:00 type your agenda here
 15:05 one item per line
 15:10 like this
 15:15 then click 'GO!'
 15:30 FINISH"></textarea>
+</div>
+<div id="controls-wrapper">
+    <div id="blurb">
+        Examples:
+        <ul>
+            <li>
+                <a href="#MDAlM0EwMCUyMEludHJvZHVjdGlvbiUyMHRvJTIwbGlnaHRuaW5nJTIwdGFsa3MlMEEwMCUzQTMwJTIwSG93JTIwSSUyMGxlYXJuZWQlMjB0byUyMGxvdmUlMjB0aHJlZS1taW51dGUlMjB0YWxrcyUwQTAxJTNBMDAlMjBUaGUlMjBoaXN0b3J5JTIwb2YlMjBwZWNoYSUyMGt1Y2hhJTBBMDElM0EzMCUyMFJlaGVhcnNhbCUyMHRpcHMlMjBmb3IlMjBsaWdodG5pbmclMjB0YWxrcyUwQTAyJTNBMDAlMjBTY2hlZHVsaW5nJTIwdGlwcyUwQTAyJTNBMzAlMjBGdW5ueSUyMHN0b3JpZXMlMEEwMyUzQTAwJTIwRklOSVNI"
+                   title="Lightning talk">Lightning talk</a></li>
+            <li>
+                <a href="#MDAlM0EwMCUyMEludHJvJTIwYW5kJTIwd2VsY29tZSUwQTA1JTNBMDAlMjBDb250ZXh0JTNBJTIwd2h5JTIwYXJlJTIwZGF0YWJhc2UlMjBkZXBsb3ltZW50cyUyMGhhcmQlM0YlMEEwOCUzQTAwJTIwUm9sbGluZyUyMGZvcndhcmQlMkMlMjByb2xsaW5nJTIwYmFjayUwQTEzJTNBMDAlMjBTY2hlbWElMjBtYW5hZ2VtZW50JTBBMTglM0EwMCUyMFdvcmtpbmclMjB3aXRoJTIwc3RhdGljJTIwZGF0YSUyMGFuZCUyMGxvb2t1cCUyMGRhdGElMEEyNSUzQTAwJTIwTGl2ZSUyMGRlbW9uc3RyYXRpb24lMEE0MCUzQTAwJTIwQ29uY2x1c2lvbiUyMGFuZCUyMG5leHQlMjBzdGVwcyUwQTQ1JTNBMDAlMjBGSU5JU0g="
+                   title="45-minute talk">45-minute talk</a></li>
+            <li>
+                <a href="#MTUlM0EwMCUyMFRoaXMlMjBpcyUyMFRpbWUlMjBNeSUyMFRhbGshJTBBMTUlM0EwNSUyMExpc3QlMjB5b3VyJTIwYWdlbmRhJTIwaXRlbXMlMEExNSUzQTEwJTIwVGltZXMlMjBhcmUlMjBsb2NhbCUyQyUyMDI0LWhvdXIlMjBjbG9jayUyQyUyMEhIJTNBbW0lMEExNSUzQTE1JTIwUHV0JTIwdGhlJTIwRklOSVNIJTIwdGltZSUyMGxhc3QlMEExNSUzQTIwJTIwVGhlbiUyMGNsaWNrJTIwJ0dPISclMEExNSUzQTI1JTIwVXNlJTIwaXQlMjB0byUyMHJ1biUyMG1lZXRpbmdzJTJDJTBBMTUlM0EzMCUyMGZvciUyMGdpdmluZyUyMHRhbGtzJTIwYW5kJTIwcHJlc2VudGF0aW9ucyUyQyUwQTE1JTNBMzUlMjBvciUyMHdoYXRldmVyJTIweW91JTIwbGlrZSUyQyUyMHJlYWxseSUyMCUzQSklMEExNSUzQTQwJTIwRklOSVNI"
+                   title="Scheduled Meeting">Scheduled Meeting</a></li>
+        </ul>
     </div>
-    <div id="controls-wrapper">
-        <div id="blurb">
-            Examples:
-            <ul>
-                <li><a href="#MDAlM0EwMCUyMEludHJvZHVjdGlvbiUyMHRvJTIwbGlnaHRuaW5nJTIwdGFsa3MlMEEwMCUzQTMwJTIwSG93JTIwSSUyMGxlYXJuZWQlMjB0byUyMGxvdmUlMjB0aHJlZS1taW51dGUlMjB0YWxrcyUwQTAxJTNBMDAlMjBUaGUlMjBoaXN0b3J5JTIwb2YlMjBwZWNoYSUyMGt1Y2hhJTBBMDElM0EzMCUyMFJlaGVhcnNhbCUyMHRpcHMlMjBmb3IlMjBsaWdodG5pbmclMjB0YWxrcyUwQTAyJTNBMDAlMjBTY2hlZHVsaW5nJTIwdGlwcyUwQTAyJTNBMzAlMjBGdW5ueSUyMHN0b3JpZXMlMEEwMyUzQTAwJTIwRklOSVNI" title="Lightning talk">Lightning talk</a></li>
-                <li><a href="#MDAlM0EwMCUyMEludHJvJTIwYW5kJTIwd2VsY29tZSUwQTA1JTNBMDAlMjBDb250ZXh0JTNBJTIwd2h5JTIwYXJlJTIwZGF0YWJhc2UlMjBkZXBsb3ltZW50cyUyMGhhcmQlM0YlMEEwOCUzQTAwJTIwUm9sbGluZyUyMGZvcndhcmQlMkMlMjByb2xsaW5nJTIwYmFjayUwQTEzJTNBMDAlMjBTY2hlbWElMjBtYW5hZ2VtZW50JTBBMTglM0EwMCUyMFdvcmtpbmclMjB3aXRoJTIwc3RhdGljJTIwZGF0YSUyMGFuZCUyMGxvb2t1cCUyMGRhdGElMEEyNSUzQTAwJTIwTGl2ZSUyMGRlbW9uc3RyYXRpb24lMEE0MCUzQTAwJTIwQ29uY2x1c2lvbiUyMGFuZCUyMG5leHQlMjBzdGVwcyUwQTQ1JTNBMDAlMjBGSU5JU0g=" title="45-minute talk">45-minute talk</a></li>
-                <li><a href="#MTUlM0EwMCUyMFRoaXMlMjBpcyUyMFRpbWUlMjBNeSUyMFRhbGshJTBBMTUlM0EwNSUyMExpc3QlMjB5b3VyJTIwYWdlbmRhJTIwaXRlbXMlMEExNSUzQTEwJTIwVGltZXMlMjBhcmUlMjBsb2NhbCUyQyUyMDI0LWhvdXIlMjBjbG9jayUyQyUyMEhIJTNBbW0lMEExNSUzQTE1JTIwUHV0JTIwdGhlJTIwRklOSVNIJTIwdGltZSUyMGxhc3QlMEExNSUzQTIwJTIwVGhlbiUyMGNsaWNrJTIwJ0dPISclMEExNSUzQTI1JTIwVXNlJTIwaXQlMjB0byUyMHJ1biUyMG1lZXRpbmdzJTJDJTBBMTUlM0EzMCUyMGZvciUyMGdpdmluZyUyMHRhbGtzJTIwYW5kJTIwcHJlc2VudGF0aW9ucyUyQyUwQTE1JTNBMzUlMjBvciUyMHdoYXRldmVyJTIweW91JTIwbGlrZSUyQyUyMHJlYWxseSUyMCUzQSklMEExNSUzQTQwJTIwRklOSVNI" title="Scheduled Meeting">Scheduled Meeting</a></li>
-            </ul>
-        </div>
-        <div class="button-group">
-            <button id="share-url">Share URL</button>
-            <input type="submit" value="GO!" id="run-meeting-button" />
-        </div>
-        <section>
-            <p>made by <a target="_blank" href="https://x.com/gamussa" title="">@gamussa</a></p>
-            <p>inspired by <a target="_blank" href="https://dylanbeattie.net/2019/12/02/better-meetings-with-agenda-defender.html" title="">Dylan Beattie's blog</a></p>
-            <p><a href="https://github.com/gAmUssA/agendadefender" title="">code on GitHub</a></p>
-        </section>
+    <div class="button-group">
+        <button id="share-url">Share URL</button>
+        <input type="submit" value="GO!" id="run-meeting-button"/>
     </div>
-    <div id="ticker">
-    </div>
-    <a id="close-ticker" href="#" title="">&times;</a>
+    <section>
+        <p>made by <a target="_blank" href="https://x.com/gamussa" title="">@gamussa</a></p>
+        <p>inspired by <a target="_blank" href="https://dylanbeattie.net/2019/12/02/better-meetings-with-agenda-defender.html" title="">Dylan Beattie's blog</a></p>
+        <p><a href="https://github.com/gAmUssA/agendadefender" title="">code on GitHub</a></p>
+    </section>
+</div>
+<div id="ticker">
+</div>
+<a id="close-ticker" href="#" title="">&times;</a>
 </body>
 </html>

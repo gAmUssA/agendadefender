@@ -92,7 +92,7 @@ const UrlSharing = (() => {
         const controlsWrapper = document.getElementById('controls-wrapper');
         const runButton = document.getElementById('run-meeting-button');
         const shareButton = document.getElementById('share-url');
-        
+
         if (!textarea || !controlsWrapper || !runButton || !shareButton) {
             return;
         }
@@ -106,12 +106,17 @@ const UrlSharing = (() => {
 
         // Load initial content
         const loadInitialContent = () => {
+            console.log('[DEBUG_LOG] Loading initial content');
             const urlText = loadUrlHash();
+            console.log('[DEBUG_LOG] URL text:', urlText);
             if (urlText) {
+                console.log('[DEBUG_LOG] Setting textarea value from URL');
                 textarea.value = urlText;
             } else {
                 const savedText = loadFromStorage();
+                console.log('[DEBUG_LOG] Storage text:', savedText);
                 if (savedText) {
+                    console.log('[DEBUG_LOG] Setting textarea value from storage');
                     textarea.value = savedText;
                 }
             }
@@ -124,7 +129,7 @@ const UrlSharing = (() => {
             if (url) {
                 message.textContent = 'Shortening URL...';
                 message.style.display = 'block';
-                
+
                 const shortUrl = await shortenUrl(url);
                 if (shortUrl) {
                     const success = await copyToClipboard(shortUrl);
@@ -141,13 +146,13 @@ const UrlSharing = (() => {
                         message.textContent = 'Failed to copy URL';
                     }
                 }
-                
+
                 // Hide message after 2 seconds
                 setTimeout(() => {
                     message.style.display = 'none';
                 }, 2000);
             }
-            
+
             // Save to localStorage
             saveToStorage(textarea.value);
         });
@@ -167,9 +172,15 @@ const UrlSharing = (() => {
 
     // Initialize when DOM is ready
     if (typeof document !== 'undefined') {
+        console.log('[DEBUG_LOG] Document readyState:', document.readyState);
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeDom);
+            console.log('[DEBUG_LOG] Adding DOMContentLoaded listener');
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('[DEBUG_LOG] DOMContentLoaded event fired');
+                initializeDom();
+            });
         } else {
+            console.log('[DEBUG_LOG] Initializing immediately');
             initializeDom();
         }
     }

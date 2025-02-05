@@ -37,7 +37,7 @@ describe('URL Sharing Module', () => {
         window.location.hash = '';
 
         // Set up fetch mock
-        global.fetch = jest.fn(() => 
+        global.fetch = jest.fn(() =>
             Promise.resolve({
                 ok: true,
                 text: () => Promise.resolve('')
@@ -83,6 +83,89 @@ describe('URL Sharing Module', () => {
 
     afterAll(() => {
         delete global.fetch;
+    });
+
+    describe('Page Load Behavior', () => {
+        test('should prioritize URL hash over localStorage on page load', async () => {
+            const urlText = 'URL Text Content';
+            const storageText = 'Storage Text Content';
+
+            // Reset DOM first
+            document.body.innerHTML = `
+                <textarea id="agenda"></textarea>
+                <div id="controls-wrapper">
+                    <button id="share-url">Share URL</button>
+                    <input type="submit" value="GO!" id="run-meeting-button" />
+                </div>
+            `;
+
+            // Set up both URL hash and localStorage
+            window.location.hash = btoa(encodeURIComponent(urlText));
+            localStorage.setItem(UrlSharing.STORAGE_KEY, storageText);
+
+            console.log('[DEBUG_LOG] Test: Setting up URL hash test');
+
+            // Set readyState to loading to ensure initialization works
+            Object.defineProperty(document, 'readyState', {value: 'loading', writable: true});
+            console.log('[DEBUG_LOG] Test: Document readyState set to:', document.readyState);
+
+            // Reinitialize module
+            jest.resetModules();
+            const urlSharing = require('../scripts/url-sharing.js');
+
+            // Simulate DOMContentLoaded
+            console.log('[DEBUG_LOG] Test: Dispatching DOMContentLoaded event');
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // Add small delay to ensure initialization completes
+            return new Promise(resolve => setTimeout(() => {
+                console.log('[DEBUG_LOG] Test: Checking textarea content');
+                const textarea = document.getElementById('agenda');
+                console.log('[DEBUG_LOG] Test: Textarea value:', textarea.value);
+                expect(textarea.value).toBe(urlText);
+                resolve();
+            }, 0));
+        });
+
+        test('should fall back to localStorage when URL hash is empty', async () => {
+            const storageText = 'Storage Text Content';
+
+            // Reset DOM first
+            document.body.innerHTML = `
+                <textarea id="agenda"></textarea>
+                <div id="controls-wrapper">
+                    <button id="share-url">Share URL</button>
+                    <input type="submit" value="GO!" id="run-meeting-button" />
+                </div>
+            `;
+
+            // Clear URL hash and set localStorage
+            window.location.hash = '';
+            localStorage.setItem(UrlSharing.STORAGE_KEY, storageText);
+
+            console.log('[DEBUG_LOG] Test: Setting up localStorage test');
+
+            // Set readyState to loading to ensure initialization works
+            Object.defineProperty(document, 'readyState', {value: 'loading', writable: true});
+            console.log('[DEBUG_LOG] Test: Document readyState set to:', document.readyState);
+
+            // Reinitialize module
+            jest.resetModules();
+            const urlSharing = require('../scripts/url-sharing.js');
+
+            // Simulate DOMContentLoaded
+            console.log('[DEBUG_LOG] Test: Dispatching DOMContentLoaded event');
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // Add small delay to ensure initialization completes
+            return new Promise(resolve => setTimeout(() => {
+                console.log('[DEBUG_LOG] Test: Checking textarea content');
+                const textarea = document.getElementById('agenda');
+                console.log('[DEBUG_LOG] Test: Textarea value:', textarea.value);
+                expect(textarea.value).toBe(storageText);
+                resolve();
+            }, 0));
+        });
     });
 
     describe('Core Functionality', () => {

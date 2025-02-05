@@ -52,21 +52,6 @@ let Agenda = {
     }
 };
 
-function loadFromHash() {
-    if (window.location.hash) {
-        try {
-            let encodedText = window.location.hash.substring(1); // Remove the # symbol
-            let decodedText = decodeURIComponent(atob(encodedText));
-            $("#agenda").val(decodedText);
-            return true;
-        } catch (e) {
-            console.warn("Failed to decode hash:", e);
-            return false;
-        }
-    }
-    return false;
-}
-
 function makeTicker(agenda) {
     let $ticker = $("#ticker");
     $ticker.html('');
@@ -99,7 +84,7 @@ function makeTicker(agenda) {
     let lastProgress = {};
     agenda.forEach(item => lastProgress[item.text] = 0);
 
-    return function() {
+    return function () {
         let now = Date.now();
         let deltaTime = now - lastUpdate;
         lastUpdate = now;
@@ -122,21 +107,21 @@ function makeTicker(agenda) {
             let minutes = Math.floor(timeLeft / 60000);
             let seconds = Math.floor((timeLeft % 60000) / 1000);
             let milliseconds = timeLeft % 1000;
-            
+
             // Update progress bar with smooth interpolation
             let totalTime = currentItem.concludesAt - currentItem.commencesAt;
             let targetProgress = 100 * (1 - timeLeft / totalTime);
             let currentProgress = lastProgress[currentItem.text] || 0;
-            
+
             // Smoothly interpolate between current and target progress
             let smoothProgress = currentProgress + (targetProgress - currentProgress) * (deltaTime / 100);
             lastProgress[currentItem.text] = smoothProgress;
-            
+
             currentItem.progressBar.css("width", smoothProgress + "%");
-            
+
             // Update item text with subsecond precision for smoother countdown
-            let timeString = minutes + ":" + 
-                           (seconds < 10 ? "0" : "") + seconds;
+            let timeString = minutes + ":" +
+                (seconds < 10 ? "0" : "") + seconds;
             currentItem.element.find(".agenda-item-text")
                 .text(currentItem.text + " - " + timeString);
 
@@ -166,7 +151,7 @@ function makeTicker(agenda) {
 function runMeeting() {
     let agendaString = $("#agenda").val();
     let agenda = Agenda.parse(agendaString);
-    
+
     if (!agenda || agenda.length === 0) {
         console.error("No valid agenda items found");
         return;
@@ -200,18 +185,18 @@ function runMeeting() {
 
 function stopMeeting() {
     if (!window.running) return;
-    
+
     window.clearInterval(window.ticker);
     window.running = false;
     $("#ticker").hide();
     $("a#close-ticker").hide();
     $("#run-meeting-button").val("GO!");
     $("#run-meeting-button").removeClass("stop");
-    
+
     // Calculate elapsed time in seconds
     let elapsedTime = Math.floor((new Date() - startTime) / 1000);
     Analytics.trackTimerStop('meeting', elapsedTime);
-    
+
     // Remove resize handler
     $(window).off('resize.agendaDefender');
 }
@@ -230,7 +215,7 @@ const ThemeManager = {
         return theme;
     },
 
-    setTheme: function(theme) {
+    setTheme: function (theme) {
         console.log('🎨 Setting theme to:', theme);
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
@@ -324,19 +309,27 @@ $(function () {
     // Initialize theme manager
     ThemeManager.initialize();
 
-    // Try to load from hash, otherwise show default agenda
-    if (!loadFromHash()) {
-        // Load a default agenda
-        let defaultAgenda = "00:00 This is Time My Talk!\n" +
-                          "15:05 List your agenda items\n" +
-                          "15:10 Times are local, 24-hour clock, HH:mm\n" +
-                          "15:15 Put the FINISH time last\n" +
-                          "15:20 Then click 'GO!'\n" +
-                          "15:25 Use it to run meetings,\n" +
-                          "15:30 for giving talks and presentations,\n" +
-                          "15:35 or whatever you like, really :)\n" +
-                          "15:40 FINISH";
-        $("#agenda").val(defaultAgenda);
+    // Try to load from hash or storage, otherwise show default agenda
+    const urlText = UrlSharing.loadUrlHash();
+    if (urlText) {
+        $("#agenda").val(urlText);
+    } else {
+        const storageText = UrlSharing.loadFromStorage();
+        if (storageText) {
+            $("#agenda").val(storageText);
+        } else {
+            // Load a default agenda
+            let defaultAgenda = "00:00 This is Time My Talk!\n" +
+                "15:05 List your agenda items\n" +
+                "15:10 Times are local, 24-hour clock, HH:mm\n" +
+                "15:15 Put the FINISH time last\n" +
+                "15:20 Then click 'GO!'\n" +
+                "15:25 Use it to run meetings,\n" +
+                "15:30 for giving talks and presentations,\n" +
+                "15:35 or whatever you like, really :)\n" +
+                "15:40 FINISH";
+            $("#agenda").val(defaultAgenda);
+        }
     }
 
     window.addEventListener("resize", function () {
@@ -344,8 +337,11 @@ $(function () {
     }, false);
 
     // Handle hash changes
-    window.addEventListener("hashchange", function() {
-        loadFromHash();
+    window.addEventListener("hashchange", function () {
+        const urlText = UrlSharing.loadUrlHash();
+        if (urlText) {
+            $("#agenda").val(urlText);
+        }
     }, false);
 
     $("a#close-ticker").click(stopMeeting);
