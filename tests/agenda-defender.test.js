@@ -1,4 +1,4 @@
-const {AgendaItem, Agenda} = require('../scripts/agenda-defender.js');
+const {AgendaItem, Agenda, runMeeting, stopMeeting} = require('../scripts/agenda-defender.js');
 
 describe('AgendaItem', () => {
     describe('constructor', () => {
@@ -340,6 +340,37 @@ describe('Agenda Defender', () => {
             // Check if theme toggle button exists
             const themeToggle = document.getElementById('theme-toggle');
             expect(themeToggle).toBeTruthy();
+        });
+    });
+
+    describe('Meeting Controls', () => {
+        beforeEach(() => {
+            document.body.innerHTML = `
+                <div id="ticker"></div>
+                <button id="theme-toggle">🌓</button>
+                <textarea id="agenda">14:30 Test item
+15:00 FINISH</textarea>
+                <button id="run-meeting-button">GO!</button>
+                <a id="close-ticker"></a>
+            `;
+        });
+
+        test('should hide theme toggle button when running meeting', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            expect(themeToggle.style.display).toBe('');
+
+            runMeeting();
+            expect(themeToggle.style.display).toBe('none');
+        });
+
+        test('should show theme toggle button when stopping meeting', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+
+            runMeeting();
+            expect(themeToggle.style.display).toBe('none');
+
+            stopMeeting();
+            expect(themeToggle.style.display).toBe('');
         });
     });
 });

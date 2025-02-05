@@ -157,6 +157,12 @@ function runMeeting() {
         return;
     }
 
+    // Hide theme toggle button when entering meeting mode
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.style.display = 'none';
+    }
+
     let $ticker = $("#ticker");
     $ticker.html('');
 
@@ -192,6 +198,12 @@ function stopMeeting() {
     $("a#close-ticker").hide();
     $("#run-meeting-button").val("GO!");
     $("#run-meeting-button").removeClass("stop");
+
+    // Show theme toggle button when exiting meeting mode
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.style.display = '';
+    }
 
     // Calculate elapsed time in seconds
     let elapsedTime = Math.floor((new Date() - startTime) / 1000);
@@ -379,5 +391,5 @@ function drawSampleAgenda(event) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {AgendaItem, Agenda, drawSampleAgenda};
+    module.exports = {AgendaItem, Agenda, drawSampleAgenda, runMeeting, stopMeeting};
 }
