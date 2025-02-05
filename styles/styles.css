@@ -1,4 +1,4 @@
-/* Base theme variables */
+                                                                                                                                                                                                                                                                                                                                /* Base theme variables */
 :root {
     /* Light theme defaults */
     --bg-color: #F2F2F7;
@@ -300,6 +300,36 @@ a#close-ticker:hover {
 
 #theme-toggle:active {
     transform: scale(0.95);
+}
+
+/* URL Sharing styles */
+.share-button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.share-button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.share-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--success-bg, #4CAF50);
+    color: var(--success-text, white);
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 /* Make the app feel more native */

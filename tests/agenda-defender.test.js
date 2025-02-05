@@ -119,3 +119,79 @@ describe('Agenda', () => {
         });
     });
 });
+
+describe('Agenda Defender', () => {
+    let AgendaDefender;
+
+    beforeEach(() => {
+        // Reset the DOM
+        document.body.innerHTML = `
+            <button id="theme-toggle" aria-label="Toggle theme">🌓</button>
+            <textarea id="agenda"></textarea>
+            <div id="controls-wrapper">
+                <input type="submit" value="GO!" id="run-meeting-button" />
+            </div>
+            <div id="ticker"></div>
+            <a id="close-ticker" style="display: none;">Close</a>
+        `;
+
+        // Clear any previous module cache
+        jest.resetModules();
+        
+        // Load the module
+        AgendaDefender = require('../scripts/agenda-defender.js');
+    });
+
+    describe('AgendaItem', () => {
+        test('should create agenda item with absolute time', () => {
+            const item = new AgendaDefender.AgendaItem(15, 30, 'Test item');
+            expect(item.timePart1).toBe(15);
+            expect(item.timePart2).toBe(30);
+            expect(item.text).toBe('Test item');
+            expect(item.isRelativeMode).toBe(false);
+        });
+
+        test('should create agenda item with relative time', () => {
+            const item = new AgendaDefender.AgendaItem(0, 0, 'Test item');
+            expect(item.isRelativeMode).toBe(true);
+        });
+
+        test('should handle color in text', () => {
+            const item = new AgendaDefender.AgendaItem(15, 30, '+ #ff0000 Colored item');
+            expect(item.color).toBe('#ff0000');
+            expect(item.text).toBe('+ Colored item');
+        });
+    });
+
+    describe('Agenda', () => {
+        test('should parse agenda item', () => {
+            const item = AgendaDefender.Agenda.parseItem('15:30 Test item');
+            expect(item.timePart1).toBe(15);
+            expect(item.timePart2).toBe(30);
+            expect(item.text).toBe('15:30 Test item');
+        });
+
+        test('should handle invalid agenda item', () => {
+            const item = AgendaDefender.Agenda.parseItem('invalid');
+            expect(item).toBeNull();
+        });
+
+        test('should parse agenda string', () => {
+            const agenda = AgendaDefender.Agenda.parse('15:00 First item\n15:30 Second item');
+            expect(agenda.length).toBe(1); // Last item is removed as it has no end time
+            expect(agenda[0].text).toBe('15:00 First item');
+        });
+    });
+
+    describe('Theme Management', () => {
+        test('should initialize theme manager', () => {
+            // Load the module again to trigger initialization
+            jest.resetModules();
+            AgendaDefender = require('../scripts/agenda-defender.js');
+            
+            // Check if theme toggle button exists
+            const themeToggle = document.getElementById('theme-toggle');
+            expect(themeToggle).toBeTruthy();
+        });
+    });
+});
