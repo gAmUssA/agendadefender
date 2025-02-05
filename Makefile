@@ -66,7 +66,7 @@ dev: $(NODE_MODULES)
 .PHONY: test
 test: $(NODE_MODULES)
 	@echo "$(BLUE)🧪 Running tests...$(RESET)"
-	@npm test
+	@FORCE_COLOR=1 npm test
 	@echo "$(GREEN)✅ All tests passed!$(RESET)"
 
 # Build target
