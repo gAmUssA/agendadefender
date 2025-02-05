@@ -103,45 +103,81 @@ function drawLightningTalk(event) {
     return false;
 }
 
-// function saveToUrlHash() {
-//     var base64 = btoa($("#agenda").html());
-//     var hash = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
-//     window.location.hash = hash;
-// }
+let startTime;
 
-// function loadUrlHash() {
-//     var hash = window.location.hash.substring(1);
-//     if (! hash) return(false);
-//     try {
-//     var base64 = hash.replace(/-/g, '+').replace(/_/g, '/') + "==";
-//     $("#agenda").html(atob(base64));
-//     return(true);
-//     } catch(err) {
-//         console.log(err);
-//         return(false);
-//     }
-// }
+function makeTicker(agenda) {
+    startTime = new Date();
+    let currentItemIndex = 0;
+
+    return function() {
+        let now = new Date();
+        let currentItem = null;
+
+        // Find the current agenda item
+        while (currentItemIndex < agenda.length) {
+            let item = agenda[currentItemIndex];
+            if (now < item.concludesAt) {
+                currentItem = item;
+                break;
+            }
+            currentItemIndex++;
+        }
+
+        if (currentItem) {
+            let timeLeft = currentItem.concludesAt - now;
+            let minutes = Math.floor(timeLeft / 60000);
+            let seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            // Update progress bar
+            let totalTime = currentItem.concludesAt - currentItem.commencesAt;
+            let progress = 100 * (1 - timeLeft / totalTime);
+            currentItem.progressBar.css("width", progress + "%");
+            
+            // Update item text
+            currentItem.element.find(".agenda-item-text")
+                .text(currentItem.text + " - " + 
+                    minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
+
+            // Mark previous items as finished
+            for (let i = 0; i < currentItemIndex; i++) {
+                agenda[i].progressBar.css("width", "100%");
+                agenda[i].element.addClass("finished");
+            }
+        } else {
+            $("#ticker").find(".agenda-item").addClass("finished");
+            $("#ticker").find(".progress-bar").css("width", "100%");
+            stopMeeting();
+        }
+    };
+}
 
 function runMeeting() {
     let agendaString = $("#agenda").val();
     let agenda = Agenda.parse(agendaString);
+    
+    if (!agenda || agenda.length === 0) {
+        console.error("No valid agenda items found");
+        return;
+    }
+
     let $ticker = $("#ticker");
     $ticker.html('');
 
     agenda.forEach(function (item, index, array) {
-        $div = $("<div class='agenda-item' />");
-        $span = $("<span class='agenda-item-text' />")
-        $span.text(item.text);
+        let $div = $("<div>").addClass("agenda-item");
+        let $span = $("<span>").addClass("agenda-item-text").text(item.text);
 
         // Calculate font size based on viewport height and number of items
         let viewportHeight = window.innerHeight;
         let fontSize = Math.min(72, Math.max(24, Math.floor(viewportHeight / (agenda.length * 2))));
-        $span.css("font-size", fontSize + "px");
-        $span.css("line-height", (fontSize * 1.2) + "px");
+        $span.css({
+            "font-size": fontSize + "px",
+            "line-height": (fontSize * 1.2) + "px"
+        });
 
         $div.append($span);
 
-        $progressBar = $("<div class='progress-bar' />");
+        let $progressBar = $("<div>").addClass("progress-bar");
         if (item.color) $progressBar.css("background-color", item.color);
 
         item.element = $div;
@@ -152,7 +188,7 @@ function runMeeting() {
 
     $("#ticker").show();
     $("a#close-ticker").show();
-    window.ticker = window.setInterval(makeTicker(agenda), 10);
+    window.ticker = window.setInterval(makeTicker(agenda), 100);
     window.running = true;
     Analytics.trackTimerStart('meeting');
 
@@ -168,11 +204,17 @@ function runMeeting() {
 }
 
 function stopMeeting() {
+    if (!window.running) return;
+    
     window.clearInterval(window.ticker);
     window.running = false;
     $("#ticker").hide();
     $("a#close-ticker").hide();
-    Analytics.trackTimerStop('meeting', window.ticker.getElapsedTime());
+    
+    // Calculate elapsed time in seconds
+    let elapsedTime = Math.floor((new Date() - startTime) / 1000);
+    Analytics.trackTimerStop('meeting', elapsedTime);
+    
     // Remove resize handler
     $(window).off('resize.agendaDefender');
 }
