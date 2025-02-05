@@ -16,7 +16,10 @@
     "type": "git",
     "url": "https://github.com/gAmUssA/agendadefender.git"
   },
-  "author": "Dylan Beattie",
+  "author": {
+    "name": "Dylan Beattie, Viktor Gamov",
+    "url": "https://github.com/gAmUssA/agendadefender"
+  },
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.1.0",
