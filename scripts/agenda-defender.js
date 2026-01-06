@@ -26,6 +26,13 @@ function AgendaItem(timePart1, timePart2, text) {
     }
 }
 
+// Global time offset for section jumping (in milliseconds)
+// Positive offset = jump forward in time, Negative offset = jump backward
+let timeOffset = 0;
+
+// Store current agenda for section jumping
+let currentAgenda = null;
+
 let Agenda = {
     parseItem: function (itemString) {
         try {
@@ -54,7 +61,7 @@ let Agenda = {
 
 function makeTicker(agenda) {
     let $ticker = $("#ticker");
-    $ticker.html('');
+    // Note: ticker is already cleared in runMeeting(), no need to clear again
 
     agenda.forEach(function (item, index, array) {
         let $div = $("<div>").addClass("agenda-item");
@@ -85,17 +92,18 @@ function makeTicker(agenda) {
     agenda.forEach(item => lastProgress[item.text] = 0);
 
     return function () {
-        let now = Date.now();
+        // Apply time offset for section jumping
+        let now = Date.now() + timeOffset;
         let deltaTime = now - lastUpdate;
         lastUpdate = now;
 
         let currentItemIndex = 0;
         let currentItem = null;
 
-        // Find the current agenda item
+        // Find the current agenda item (compare with getTime() for proper timestamp comparison)
         while (currentItemIndex < agenda.length) {
             let item = agenda[currentItemIndex];
-            if (now < item.concludesAt) {
+            if (now < item.concludesAt.getTime()) {
                 currentItem = item;
                 break;
             }
@@ -119,11 +127,23 @@ function makeTicker(agenda) {
 
             currentItem.progressBar.css("width", smoothProgress + "%");
 
+            // Update overall progress bar (Requirements: 4.6)
+            if (typeof ProgressBar !== 'undefined') {
+                ProgressBar.update(currentItemIndex);
+            }
+
             // Update item text with subsecond precision for smoother countdown
             let timeString = minutes + ":" +
                 (seconds < 10 ? "0" : "") + seconds;
             currentItem.element.find(".agenda-item-text")
                 .text(currentItem.text + " - " + timeString);
+
+            // Apply time warnings (traffic light system) to timer text and progress bar
+            // Requirements: 3.6 - Apply color changes to timer text and progress bar
+            if (typeof TimeWarnings !== 'undefined') {
+                TimeWarnings.applyWarning(currentItem.element[0], timeLeft);
+                TimeWarnings.applyWarning(currentItem.progressBar[0], timeLeft);
+            }
 
             // Add pulsing effect when 5 seconds or less remaining, but only if not finished
             if (seconds <= 5 && minutes === 0 && timeLeft > 0) {
@@ -137,7 +157,32 @@ function makeTicker(agenda) {
                 agenda[i].progressBar.css("width", "100%");
                 agenda[i].element.addClass("finished").removeClass("pulse");
                 lastProgress[agenda[i].text] = 100;
+                // Reset text to original (remove countdown) for finished items
+                agenda[i].element.find(".agenda-item-text").text(agenda[i].text);
+                // Remove warning classes from finished items
+                if (typeof TimeWarnings !== 'undefined') {
+                    agenda[i].element[0].classList.remove('warning-green', 'warning-yellow', 'warning-red', 'warning-overtime');
+                    agenda[i].progressBar[0].classList.remove('warning-green', 'warning-yellow', 'warning-red', 'warning-overtime');
+                }
             }
+            
+            // Reset upcoming items (for when jumping backward)
+            // Remove finished class and reset progress for items after current
+            for (let i = currentItemIndex + 1; i < agenda.length; i++) {
+                agenda[i].element.removeClass("finished").removeClass("pulse");
+                agenda[i].progressBar.css("width", "0%");
+                lastProgress[agenda[i].text] = 0;
+                // Reset the text to original (remove countdown)
+                agenda[i].element.find(".agenda-item-text").text(agenda[i].text);
+                // Remove warning classes from upcoming items
+                if (typeof TimeWarnings !== 'undefined') {
+                    agenda[i].element[0].classList.remove('warning-green', 'warning-yellow', 'warning-red', 'warning-overtime');
+                    agenda[i].progressBar[0].classList.remove('warning-green', 'warning-yellow', 'warning-red', 'warning-overtime');
+                }
+            }
+            
+            // Also reset current item's finished state (in case we jumped back to it)
+            currentItem.element.removeClass("finished");
         } else {
             // All items finished
             $("#ticker").find(".agenda-item").addClass("finished").removeClass("pulse");
@@ -157,6 +202,22 @@ function runMeeting() {
         return;
     }
 
+    // Store agenda globally for section jumping
+    currentAgenda = agenda;
+    
+    // Reset time offset
+    timeOffset = 0;
+
+    // Update keyboard shortcuts timer state with agenda info
+    if (typeof KeyboardShortcuts !== 'undefined') {
+        KeyboardShortcuts.updateTimerState({
+            isRunning: true,
+            totalSections: agenda.length,
+            currentSectionIndex: 0
+        });
+        console.log('⌨️ Timer state updated: totalSections =', agenda.length);
+    }
+
     // Hide theme toggle button when entering meeting mode
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
@@ -171,8 +232,16 @@ function runMeeting() {
     startTime = new Date();
 
     let tickerUpdate = makeTicker(agenda);
+
+    // Initialize and render overall progress bar AFTER makeTicker (Requirements: 4.6)
+    // Must be after makeTicker since makeTicker clears the ticker
+    if (typeof ProgressBar !== 'undefined') {
+        const progressBarContainer = ProgressBar.initialize();
+        ProgressBar.render(agenda, 0);
+        $ticker.append(progressBarContainer);
+    }
     $("#ticker").show();
-    $("a#close-ticker").show();
+    $("#ticker-controls").show();
     window.ticker = window.setInterval(tickerUpdate, 50); // Update more frequently for smoother animation
     window.running = true;
     $("#run-meeting-button").val("STOP!");
@@ -195,9 +264,27 @@ function stopMeeting() {
     window.clearInterval(window.ticker);
     window.running = false;
     $("#ticker").hide();
-    $("a#close-ticker").hide();
+    $("#ticker-controls").hide();
     $("#run-meeting-button").val("GO!");
     $("#run-meeting-button").removeClass("stop");
+
+    // Clear agenda and reset time offset
+    currentAgenda = null;
+    timeOffset = 0;
+
+    // Update keyboard shortcuts timer state
+    if (typeof KeyboardShortcuts !== 'undefined') {
+        KeyboardShortcuts.updateTimerState({
+            isRunning: false,
+            currentSectionIndex: 0,
+            totalSections: 0
+        });
+    }
+
+    // Exit fullscreen mode if active
+    if (typeof FullscreenManager !== 'undefined' && FullscreenManager.getState()) {
+        FullscreenManager.exit();
+    }
 
     // Show theme toggle button when exiting meeting mode
     const themeToggle = document.getElementById('theme-toggle');
@@ -211,6 +298,64 @@ function stopMeeting() {
 
     // Remove resize handler
     $(window).off('resize.agendaDefender');
+}
+
+/**
+ * Jump to a specific section by index
+ * Adjusts the time offset to make the timer show the target section
+ * @param {number} targetIndex - 0-based section index to jump to
+ */
+function jumpToSectionByIndex(targetIndex) {
+    if (!currentAgenda || !window.running) {
+        console.log('⌨️ Cannot jump: timer not running or no agenda');
+        return;
+    }
+    
+    if (targetIndex < 0 || targetIndex >= currentAgenda.length) {
+        console.log('⌨️ Cannot jump: invalid section index', targetIndex);
+        return;
+    }
+    
+    // Calculate the current effective time
+    let now = Date.now() + timeOffset;
+    
+    // Find the target section's start time
+    let targetSection = currentAgenda[targetIndex];
+    let targetStartTime = targetSection.commencesAt.getTime();
+    
+    // Calculate new offset to make "now" appear at the start of target section
+    // We add a small buffer (100ms) so we're clearly in the new section
+    timeOffset = targetStartTime - Date.now() + 100;
+    
+    console.log('⌨️ Jumped to section', targetIndex, ':', targetSection.text);
+    console.log('⌨️ New time offset:', timeOffset, 'ms');
+    
+    // Update keyboard shortcuts state
+    if (typeof KeyboardShortcuts !== 'undefined') {
+        KeyboardShortcuts.updateTimerState({
+            currentSectionIndex: targetIndex
+        });
+    }
+}
+
+/**
+ * Get the current section index based on time offset
+ * @returns {number} Current section index
+ */
+function getCurrentSectionIndex() {
+    if (!currentAgenda || !window.running) {
+        return 0;
+    }
+    
+    let now = Date.now() + timeOffset;
+    
+    for (let i = 0; i < currentAgenda.length; i++) {
+        if (now < currentAgenda[i].concludesAt.getTime()) {
+            return i;
+        }
+    }
+    
+    return currentAgenda.length - 1;
 }
 
 // Theme management
@@ -321,6 +466,51 @@ $(function () {
     // Initialize theme manager
     ThemeManager.initialize();
 
+    // Initialize keyboard shortcuts (Requirements: 2.1-2.9)
+    if (typeof KeyboardShortcuts !== 'undefined') {
+        KeyboardShortcuts.initialize();
+        console.log('⌨️ Keyboard shortcuts initialized. Press ? for help.');
+        
+        // Wire up keyboard actions to timer functions (Requirements: 2.1, 2.2, 2.3, 2.4)
+        KeyboardShortcuts.setCallbacks({
+            onTogglePlayPause: function(isRunning) {
+                console.log('⌨️ Toggle play/pause, running:', window.running);
+                // Toggle between running and stopped states
+                if (window.running) {
+                    stopMeeting();
+                } else {
+                    runMeeting();
+                }
+            },
+            onReset: function() {
+                console.log('⌨️ Reset timer');
+                // Stop the meeting and reset to beginning
+                if (window.running) {
+                    stopMeeting();
+                }
+                // Reset is handled by stopping - user can start again
+            },
+            onNextSection: function(index) {
+                console.log('⌨️ Next section: jumping to index', index);
+                jumpToSectionByIndex(index);
+            },
+            onPrevSection: function(index) {
+                console.log('⌨️ Previous section: jumping to index', index);
+                jumpToSectionByIndex(index);
+            },
+            onToggleMute: function(isMuted) {
+                console.log('⌨️ Toggle mute:', isMuted);
+                // Audio mute toggle - future Phase 2 feature
+            },
+            onJumpToSection: function(index) {
+                console.log('⌨️ Jump to section: jumping to index', index);
+                jumpToSectionByIndex(index);
+            }
+        });
+    } else {
+        console.warn('⌨️ KeyboardShortcuts module not loaded');
+    }
+
     // Try to load from hash or storage, otherwise show default agenda
     const urlText = UrlSharing.loadUrlHash();
     if (urlText) {
@@ -347,7 +537,26 @@ $(function () {
         }
     }, false);
 
-    $("a#close-ticker").click(stopMeeting);
+    $("#close-ticker").click(stopMeeting);
+
+    // Initialize keyboard help button
+    $("#keyboard-help-button").click(function() {
+        if (typeof KeyboardShortcuts !== 'undefined') {
+            KeyboardShortcuts.showHelpOverlay();
+        }
+    });
+
+    // Initialize fullscreen toggle button
+    $("#fullscreen-toggle").click(function() {
+        if (typeof FullscreenManager !== 'undefined') {
+            FullscreenManager.toggle();
+        }
+    });
+
+    // Initialize FullscreenManager if available
+    if (typeof FullscreenManager !== 'undefined') {
+        FullscreenManager.initialize();
+    }
 
     $("#run-meeting-button").click(runMeeting);
     document.getElementById('scheduled-meeting')?.addEventListener('click', (e) => {

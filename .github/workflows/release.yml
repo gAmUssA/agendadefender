@@ -1,11 +1,15 @@
 name: Build and Release
 
+# Disabled for now - re-enable when ready to generate desktop versions
+# on:
+#   push:
+#     branches:
+#       - master
+#     tags:
+#       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  workflow_dispatch: # Manual trigger only
 
 permissions:
   contents: write
@@ -35,6 +39,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Run tests
+        run: npm test
 
       # macOS specific setup
       - name: Install macOS dependencies

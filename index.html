@@ -32,6 +32,10 @@
         }
     </script>
     <script src="scripts/url-sharing.js"></script>
+    <script src="scripts/time-warnings.js"></script>
+    <script src="scripts/progress-bar.js"></script>
+    <script src="scripts/fullscreen.js"></script>
+    <script src="scripts/keyboard-shortcuts.js"></script>
     <script src="scripts/agenda-defender.js"></script>
 </head>
 
@@ -39,11 +43,12 @@
 <div class="titlebar"></div>
 <button id="theme-toggle" aria-label="Toggle theme">🌓</button>
 <div id="textarea-wrapper">
-        <textarea id="agenda" placeholder="15:00 type your agenda here
-15:05 one item per line
-15:10 like this
-15:15 then click 'GO!'
-15:30 FINISH"></textarea>
+        <textarea id="agenda" placeholder="00:00 Introduction
+02:00 Main topic
+10:00 Demo
+15:00 Q&A
+20:00 FINISH"></textarea>
+        <p class="format-hint">Format: MM:SS Section name (one per line)</p>
 </div>
 <div id="controls-wrapper">
     <div id="blurb">
@@ -71,6 +76,23 @@
 </div>
 <div id="ticker">
 </div>
-<a id="close-ticker" href="#" title="">&times;</a>
+<div id="ticker-controls">
+    <button id="keyboard-help-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+    </button>
+    <button id="fullscreen-toggle" aria-label="Toggle fullscreen" title="Toggle fullscreen (F)">
+        <svg class="fullscreen-enter-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+        <svg class="fullscreen-exit-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+        </svg>
+    </button>
+    <a id="close-ticker" href="#" title="Close timer (Esc)">&times;</a>
+</div>
 </body>
 </html>
