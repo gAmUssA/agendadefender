@@ -290,6 +290,84 @@ div.progress-bar {
     animation: pulse 1.2s ease-in-out infinite;
 }
 
+/* Pause state styles */
+@keyframes pausePulse {
+    0% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.paused {
+    animation: pausePulse 2s ease-in-out infinite;
+}
+
+.paused-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 28px;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    display: none;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    animation: pauseBadgePulse 2s ease-in-out infinite;
+}
+
+.paused-badge svg {
+    width: 48px;
+    height: 48px;
+    fill: currentColor;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes pauseBadgePulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 1;
+    }
+}
+
+/* Dark theme paused badge - improved visibility */
+:root[data-theme="dark"] .paused-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] .paused-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Pause button states */
+.pause-button.paused {
+    background-color: var(--button-bg);
+    opacity: 0.8;
+}
+
 .titlebar {
     height: 38px;
     background: transparent;
@@ -689,13 +767,12 @@ div#controls-wrapper section p a:hover {
 .fullscreen-mode div#ticker div.agenda-item {
     width: 90vw;
     max-width: 90vw;
-    text-align: center;
 }
 
 .fullscreen-mode div#ticker div.agenda-item span.agenda-item-text {
     font-size: min(20vw, 30vh);
     line-height: 1.2;
-    text-align: center;
+    text-align: left;
 }
 
 /* Hide non-essential UI in fullscreen (Requirement 1.3) */
@@ -742,11 +819,28 @@ div#controls-wrapper section p a:hover {
 #ticker-controls {
     position: fixed;
     top: 20px;
-    right: 30px;
+    right: 20px;
     display: none;
+    gap: 6px;
     align-items: center;
-    gap: 16px;
     z-index: 1001;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transition: opacity 0.4s ease-in-out;
+}
+
+/* Auto-dim controls when inactive */
+#ticker-controls.dimmed {
+    opacity: 0.2;
+}
+
+#ticker-controls.dimmed:hover {
+    opacity: 1;
 }
 
 /* Show ticker controls when ticker is visible */
@@ -755,30 +849,162 @@ div#ticker[style*="block"] ~ #ticker-controls,
     display: flex;
 }
 
-/* Fullscreen toggle button */
-#fullscreen-toggle {
-    font-size: 20px;
-    padding: 8px;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    color: var(--text-color);
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    opacity: 0.8;
+/* Base button styling for all ticker control buttons */
+#ticker-controls button,
+#ticker-controls a {
     display: flex;
     align-items: center;
     justify-content: center;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Hover effects for all buttons */
+#ticker-controls button:hover,
+#ticker-controls a:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Active states for all buttons */
+#ticker-controls button:active,
+#ticker-controls a:active {
+    transform: translateY(0);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Focus states for accessibility */
+#ticker-controls button:focus-visible,
+#ticker-controls a:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: 2px;
+}
+
+/* Pause button styling - consistent with other buttons */
+#pause-button {
+    background: #007AFF;
+    color: white;
+    gap: 6px;
+    height: 48px;
+    min-width: 80px;
+    padding: 0 12px;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+#pause-button:hover {
+    background: #0056CC;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+#pause-button:active {
+    transform: translateY(0);
+    background: #004499;
+    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+}
+
+#pause-button svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+#pause-button .button-text {
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 4px;
+    white-space: nowrap;
+}
+
+/* Pause button paused state - improved visibility */
+#pause-button.paused {
+    background: #FF9500;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(255, 149, 0, 0.4);
+}
+
+#pause-button.paused:hover {
+    background: #E6850E;
+    box-shadow: 0 6px 20px rgba(255, 149, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+#pause-button.paused .button-text {
+    font-weight: 800;
+    font-size: 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.5px;
+}
+
+/* Secondary control buttons (help, fullscreen) - consistent styling */
+#keyboard-help-button,
+#fullscreen-toggle {
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-color);
+    border-radius: 12px;
+}
+
+#keyboard-help-button:hover,
 #fullscreen-toggle:hover {
-    transform: scale(1.1);
-    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+#keyboard-help-button:active,
 #fullscreen-toggle:active {
-    transform: scale(0.95);
+    transform: translateY(0);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+#keyboard-help-button svg,
+#fullscreen-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Close button styling - consistent with other buttons */
+#close-ticker {
+    width: 48px;
+    height: 48px;
+    background: #FF3B30;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 12px;
+    line-height: 1;
+}
+
+#close-ticker:hover {
+    background: #D70015;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+#close-ticker:active {
+    transform: translateY(0);
+    background: #B8000C;
+    box-shadow: 0 2px 6px rgba(255, 59, 48, 0.4);
 }
 
 /* Fullscreen icon visibility */
@@ -798,32 +1024,39 @@ div#ticker[style*="block"] ~ #ticker-controls,
     display: none;
 }
 
-/* Update close-ticker to be relative within container */
-#ticker-controls #close-ticker {
-    position: relative;
-    top: auto;
-    right: auto;
-    font-size: 48px;
-    font-weight: bold;
-    color: var(--text-color);
-    text-decoration: none;
-    display: block;
-    opacity: 0.8;
-    transition: opacity 0.2s, transform 0.2s;
-    text-shadow: none;
-    -webkit-user-select: text;
-    -webkit-app-region: no-drag;
-}
-
-#ticker-controls #close-ticker:hover {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
 /* Hide fullscreen button on mobile (touch devices typically don't support fullscreen well) */
 @media (max-width: 768px) {
     #fullscreen-toggle {
         display: none;
+    }
+    
+    /* Adjust ticker controls for mobile */
+    #ticker-controls {
+        top: 10px;
+        right: 10px;
+        padding: 8px;
+        gap: 4px;
+    }
+    
+    /* Make buttons slightly smaller on mobile */
+    #ticker-controls button,
+    #ticker-controls a {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+    }
+    
+    #pause-button {
+        min-width: 70px;
+        padding: 0 10px;
+    }
+    
+    #pause-button .button-text {
+        font-size: 12px;
+    }
+    
+    #close-ticker {
+        font-size: 18px;
     }
 }
 
@@ -989,28 +1222,318 @@ div#ticker[style*="block"] ~ #ticker-controls,
 }
 
 
-/* Keyboard help button */
-#keyboard-help-button {
-    font-size: 20px;
-    padding: 8px;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
+/* Dark theme adjustments for ticker controls */
+:root[data-theme="dark"] #ticker-controls {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+}
+
+:root[data-theme="dark"] #keyboard-help-button,
+:root[data-theme="dark"] #fullscreen-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+:root[data-theme="dark"] #keyboard-help-button:hover,
+:root[data-theme="dark"] #fullscreen-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] #ticker-controls {
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+    }
+    
+    :root[data-theme="system"] #keyboard-help-button,
+    :root[data-theme="system"] #fullscreen-toggle {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    :root[data-theme="system"] #keyboard-help-button:hover,
+    :root[data-theme="system"] #fullscreen-toggle:hover {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Keyboard help button - now styled with the unified system above */
+
+/* Section Navigator Styles */
+/* Requirements: 4.3, 4.4 - Section list UI with highlighting and auto-scroll */
+
+.section-list {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--controls-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    z-index: 900;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.section-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    margin: 4px 0;
+    border-radius: 8px;
     cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.section-item:hover {
+    background: rgba(0, 122, 255, 0.1);
+    border-color: rgba(0, 122, 255, 0.3);
+}
+
+.section-item.current-section {
+    background: rgba(0, 122, 255, 0.15);
+    border-color: rgba(0, 122, 255, 0.5);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+.section-number {
+    font-weight: 600;
+    margin-right: 8px;
+    color: var(--link-color);
+    min-width: 24px;
+}
+
+.section-text {
+    flex: 1;
+    font-size: 14px;
     color: var(--text-color);
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    opacity: 0.8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dark theme adjustments for section list */
+:root[data-theme="dark"] .section-list {
+    background: rgba(28, 28, 30, 0.9);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+:root[data-theme="dark"] .section-item:hover {
+    background: rgba(10, 132, 255, 0.15);
+    border-color: rgba(10, 132, 255, 0.4);
+}
+
+:root[data-theme="dark"] .section-item.current-section {
+    background: rgba(10, 132, 255, 0.2);
+    border-color: rgba(10, 132, 255, 0.6);
+    box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+/* System preference dark mode */
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] .section-list {
+        background: rgba(28, 28, 30, 0.9);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    :root[data-theme="system"] .section-item:hover {
+        background: rgba(10, 132, 255, 0.15);
+        border-color: rgba(10, 132, 255, 0.4);
+    }
+    
+    :root[data-theme="system"] .section-item.current-section {
+        background: rgba(10, 132, 255, 0.2);
+        border-color: rgba(10, 132, 255, 0.6);
+        box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+    }
+}
+
+/* Hide section list on small screens */
+@media (max-width: 768px) {
+    .section-list {
+        display: none;
+    }
+}
+
+/* Scrollbar styling for section list */
+.section-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.section-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.section-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.section-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+
+/* ===========================================
+   Time Adjustment Buttons
+   Requirements: 4.5 - +30s/-30s buttons near timer controls
+   =========================================== */
+
+.time-adjustment-buttons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.time-adjust-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 2px;
+    width: auto;
+    min-width: 60px;
+    height: 48px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
 }
 
-#keyboard-help-button:hover {
-    transform: scale(1.1);
-    opacity: 1;
+.time-adjust-btn .btn-icon {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
 }
 
-#keyboard-help-button:active {
-    transform: scale(0.95);
+.time-adjust-btn .btn-text {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Subtract time button (-30s) */
+.time-adjust-btn.subtract-time {
+    background: rgba(255, 59, 48, 0.15);
+    color: #FF3B30;
+}
+
+.time-adjust-btn.subtract-time:hover {
+    background: rgba(255, 59, 48, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+}
+
+.time-adjust-btn.subtract-time:active {
+    transform: translateY(0);
+    background: rgba(255, 59, 48, 0.35);
+}
+
+/* Add time button (+30s) */
+.time-adjust-btn.add-time {
+    background: rgba(52, 199, 89, 0.15);
+    color: #34C759;
+}
+
+.time-adjust-btn.add-time:hover {
+    background: rgba(52, 199, 89, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.2);
+}
+
+.time-adjust-btn.add-time:active {
+    transform: translateY(0);
+    background: rgba(52, 199, 89, 0.35);
+}
+
+/* Disabled state */
+.time-adjust-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Focus states for accessibility */
+.time-adjust-btn:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: 2px;
+}
+
+/* Dark theme adjustments */
+:root[data-theme="dark"] .time-adjust-btn.subtract-time {
+    background: rgba(255, 69, 58, 0.2);
+    color: #FF453A;
+}
+
+:root[data-theme="dark"] .time-adjust-btn.subtract-time:hover {
+    background: rgba(255, 69, 58, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 69, 58, 0.25);
+}
+
+:root[data-theme="dark"] .time-adjust-btn.add-time {
+    background: rgba(48, 209, 88, 0.2);
+    color: #30D158;
+}
+
+:root[data-theme="dark"] .time-adjust-btn.add-time:hover {
+    background: rgba(48, 209, 88, 0.3);
+    box-shadow: 0 4px 12px rgba(48, 209, 88, 0.25);
+}
+
+/* System preference dark mode */
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] .time-adjust-btn.subtract-time {
+        background: rgba(255, 69, 58, 0.2);
+        color: #FF453A;
+    }
+    
+    :root[data-theme="system"] .time-adjust-btn.subtract-time:hover {
+        background: rgba(255, 69, 58, 0.3);
+        box-shadow: 0 4px 12px rgba(255, 69, 58, 0.25);
+    }
+    
+    :root[data-theme="system"] .time-adjust-btn.add-time {
+        background: rgba(48, 209, 88, 0.2);
+        color: #30D158;
+    }
+    
+    :root[data-theme="system"] .time-adjust-btn.add-time:hover {
+        background: rgba(48, 209, 88, 0.3);
+        box-shadow: 0 4px 12px rgba(48, 209, 88, 0.25);
+    }
+}
+
+/* Mobile adjustments for time adjustment buttons */
+@media (max-width: 768px) {
+    .time-adjust-btn {
+        min-width: 50px;
+        height: 44px;
+        padding: 0 10px;
+    }
+    
+    .time-adjust-btn .btn-icon {
+        font-size: 16px;
+    }
+    
+    .time-adjust-btn .btn-text {
+        font-size: 12px;
+    }
 }

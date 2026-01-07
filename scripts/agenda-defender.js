@@ -30,8 +30,9 @@ function AgendaItem(timePart1, timePart2, text) {
 // Positive offset = jump forward in time, Negative offset = jump backward
 let timeOffset = 0;
 
-// Store current agenda for section jumping
+// Store current agenda for section jumping (exposed to window for SectionNavigator)
 let currentAgenda = null;
+window.currentAgenda = null;
 
 let Agenda = {
     parseItem: function (itemString) {
@@ -92,8 +93,19 @@ function makeTicker(agenda) {
     agenda.forEach(item => lastProgress[item.text] = 0);
 
     return function () {
-        // Apply time offset for section jumping
+        // Check pause state before updating displays (Requirements: 1.4, 1.5)
+        if (typeof PauseController !== 'undefined' && !PauseController.shouldUpdate()) {
+            return; // Skip all updates when paused
+        }
+
+        // Apply time offset for section jumping and exclude paused duration
         let now = Date.now() + timeOffset;
+        
+        // Exclude paused duration from time calculations (Requirements: 1.4, 1.5)
+        if (typeof PauseController !== 'undefined') {
+            now -= PauseController.getPausedDuration();
+        }
+        
         let deltaTime = now - lastUpdate;
         lastUpdate = now;
 
@@ -131,6 +143,11 @@ function makeTicker(agenda) {
             if (typeof ProgressBar !== 'undefined') {
                 ProgressBar.update(currentItemIndex);
             }
+            
+            // Update section list highlighting (Requirements: 4.3)
+            if (typeof SectionNavigator !== 'undefined') {
+                SectionNavigator.highlightCurrentSection();
+            }
 
             // Update item text with subsecond precision for smoother countdown
             let timeString = minutes + ":" +
@@ -140,7 +157,9 @@ function makeTicker(agenda) {
 
             // Apply time warnings (traffic light system) to timer text and progress bar
             // Requirements: 3.6 - Apply color changes to timer text and progress bar
-            if (typeof TimeWarnings !== 'undefined') {
+            // Prevent alerts and warnings during pause (Requirements: 1.4, 1.5)
+            if (typeof TimeWarnings !== 'undefined' && 
+                (typeof PauseController === 'undefined' || !PauseController.isPaused())) {
                 TimeWarnings.applyWarning(currentItem.element[0], timeLeft);
                 TimeWarnings.applyWarning(currentItem.progressBar[0], timeLeft);
             }
@@ -204,6 +223,7 @@ function runMeeting() {
 
     // Store agenda globally for section jumping
     currentAgenda = agenda;
+    window.currentAgenda = agenda;
     
     // Reset time offset
     timeOffset = 0;
@@ -213,7 +233,8 @@ function runMeeting() {
         KeyboardShortcuts.updateTimerState({
             isRunning: true,
             totalSections: agenda.length,
-            currentSectionIndex: 0
+            currentSectionIndex: 0,
+            isPaused: false
         });
         console.log('⌨️ Timer state updated: totalSections =', agenda.length);
     }
@@ -240,8 +261,19 @@ function runMeeting() {
         ProgressBar.render(agenda, 0);
         $ticker.append(progressBarContainer);
     }
+    
+    // Note: Section list removed - the main agenda display already shows sections
+    // Section navigation is handled via keyboard shortcuts (N/P, arrow keys, 1-9)
+    // and clicking on sections in the progress bar
+    
     $("#ticker").show();
     $("#ticker-controls").show();
+    
+    // Start auto-dim timer for controls
+    if (typeof ControlsDimmer !== 'undefined') {
+        ControlsDimmer.startDimming();
+    }
+    
     window.ticker = window.setInterval(tickerUpdate, 50); // Update more frequently for smoother animation
     window.running = true;
     $("#run-meeting-button").val("STOP!");
@@ -265,12 +297,34 @@ function stopMeeting() {
     window.running = false;
     $("#ticker").hide();
     $("#ticker-controls").hide();
+    
+    // Stop auto-dim timer for controls
+    if (typeof ControlsDimmer !== 'undefined') {
+        ControlsDimmer.stopDimming();
+    }
+    
     $("#run-meeting-button").val("GO!");
     $("#run-meeting-button").removeClass("stop");
 
     // Clear agenda and reset time offset
     currentAgenda = null;
+    window.currentAgenda = null;
     timeOffset = 0;
+
+    // Reset pause controller state (Requirements: Integration)
+    if (typeof PauseController !== 'undefined') {
+        PauseController.reset();
+    }
+    
+    // Reset time adjuster state (Requirements: Integration)
+    if (typeof TimeAdjuster !== 'undefined') {
+        TimeAdjuster.reset();
+    }
+    
+    // Clean up SectionNavigator (Requirements: Integration)
+    if (typeof SectionNavigator !== 'undefined') {
+        SectionNavigator.destroy();
+    }
 
     // Update keyboard shortcuts timer state
     if (typeof KeyboardShortcuts !== 'undefined') {
@@ -475,11 +529,17 @@ $(function () {
         KeyboardShortcuts.setCallbacks({
             onTogglePlayPause: function(isRunning) {
                 console.log('⌨️ Toggle play/pause, running:', window.running);
-                // Toggle between running and stopped states
-                if (window.running) {
-                    stopMeeting();
+                
+                // If timer is running, use PauseController for pause/resume (Requirements: 5.1)
+                if (window.running && typeof PauseController !== 'undefined') {
+                    PauseController.toggle();
                 } else {
-                    runMeeting();
+                    // Toggle between running and stopped states
+                    if (window.running) {
+                        stopMeeting();
+                    } else {
+                        runMeeting();
+                    }
                 }
             },
             onReset: function() {
@@ -492,11 +552,21 @@ $(function () {
             },
             onNextSection: function(index) {
                 console.log('⌨️ Next section: jumping to index', index);
-                jumpToSectionByIndex(index);
+                // Use SectionNavigator if available (Requirements: 5.3)
+                if (typeof SectionNavigator !== 'undefined') {
+                    SectionNavigator.nextSection();
+                } else {
+                    jumpToSectionByIndex(index);
+                }
             },
             onPrevSection: function(index) {
                 console.log('⌨️ Previous section: jumping to index', index);
-                jumpToSectionByIndex(index);
+                // Use SectionNavigator if available (Requirements: 5.4)
+                if (typeof SectionNavigator !== 'undefined') {
+                    SectionNavigator.previousSection();
+                } else {
+                    jumpToSectionByIndex(index);
+                }
             },
             onToggleMute: function(isMuted) {
                 console.log('⌨️ Toggle mute:', isMuted);
@@ -504,7 +574,12 @@ $(function () {
             },
             onJumpToSection: function(index) {
                 console.log('⌨️ Jump to section: jumping to index', index);
-                jumpToSectionByIndex(index);
+                // Use SectionNavigator if available (Requirements: 5.5)
+                if (typeof SectionNavigator !== 'undefined') {
+                    SectionNavigator.jumpToSection(index);
+                } else {
+                    jumpToSectionByIndex(index);
+                }
             }
         });
     } else {
@@ -525,10 +600,6 @@ $(function () {
         }
     }
 
-    window.addEventListener("resize", function () {
-        if (window.running) runMeeting();
-    }, false);
-
     // Handle hash changes
     window.addEventListener("hashchange", function () {
         const urlText = UrlSharing.loadUrlHash();
@@ -538,6 +609,26 @@ $(function () {
     }, false);
 
     $("#close-ticker").click(stopMeeting);
+
+    // Wire up pause button to PauseController (Requirements: 1.1)
+    $("#pause-button").click(function() {
+        if (typeof PauseController !== 'undefined') {
+            PauseController.toggle();
+        }
+    });
+
+    // Wire up time adjustment buttons to TimeAdjuster (Requirements: 3.1, 3.2, 4.5)
+    $("#add-time-btn").click(function() {
+        if (typeof TimeAdjuster !== 'undefined') {
+            TimeAdjuster.addTime(30);
+        }
+    });
+    
+    $("#subtract-time-btn").click(function() {
+        if (typeof TimeAdjuster !== 'undefined') {
+            TimeAdjuster.subtractTime(30);
+        }
+    });
 
     // Initialize keyboard help button
     $("#keyboard-help-button").click(function() {

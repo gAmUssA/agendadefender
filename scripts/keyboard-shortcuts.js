@@ -169,7 +169,9 @@ const KeyboardShortcuts = (function() {
             'KeyF': toggleFullscreen,           // Requirements: 2.5
             'KeyM': toggleMute,                 // Requirements: 2.6
             'Escape': handleEscape,             // Requirements: 2.9
-            'Slash': toggleHelpOverlay          // ? key for help (with shift)
+            'Slash': toggleHelpOverlay,         // ? key for help (with shift)
+            'Equal': addTime,                   // Requirements: 5.6 - + or = key
+            'Minus': subtractTime               // Requirements: 5.7 - - key
         };
 
         // Handle ? key (Shift + /)
@@ -177,6 +179,29 @@ const KeyboardShortcuts = (function() {
             event.preventDefault();
             log('Action: toggleHelpOverlay (?)');
             toggleHelpOverlay();
+            return;
+        }
+
+        // Handle + key (Shift + =) for adding time (Requirements: 5.6)
+        if (event.code === 'Equal' && event.shiftKey) {
+            event.preventDefault();
+            log('Action: addTime (+)');
+            addTime();
+            return;
+        }
+
+        // Handle numpad + and - keys for time adjustment
+        if (event.code === 'NumpadAdd') {
+            event.preventDefault();
+            log('Action: addTime (numpad +)');
+            addTime();
+            return;
+        }
+        
+        if (event.code === 'NumpadSubtract') {
+            event.preventDefault();
+            log('Action: subtractTime (numpad -)');
+            subtractTime();
             return;
         }
 
@@ -304,6 +329,32 @@ const KeyboardShortcuts = (function() {
     }
 
     /**
+     * Add time to the timer
+     * Requirements: 5.6
+     */
+    function addTime() {
+        log('addTime called');
+        if (typeof TimeAdjuster !== 'undefined') {
+            TimeAdjuster.addTime(30);
+        } else {
+            log('Warning: TimeAdjuster not available');
+        }
+    }
+
+    /**
+     * Subtract time from the timer
+     * Requirements: 5.7
+     */
+    function subtractTime() {
+        log('subtractTime called');
+        if (typeof TimeAdjuster !== 'undefined') {
+            TimeAdjuster.subtractTime(30);
+        } else {
+            log('Warning: TimeAdjuster not available');
+        }
+    }
+
+    /**
      * Handle Escape key
      * Requirements: 2.9
      */
@@ -372,6 +423,14 @@ const KeyboardShortcuts = (function() {
                         <div class="shortcut-item">
                             <kbd>R</kbd>
                             <span>Reset timer</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>+</kbd> or <kbd>=</kbd>
+                            <span>Add 30 seconds</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>-</kbd>
+                            <span>Subtract 30 seconds</span>
                         </div>
                     </div>
                     <div class="shortcut-group">
@@ -501,6 +560,8 @@ const KeyboardShortcuts = (function() {
         toggleMute: toggleMute,
         handleEscape: handleEscape,
         jumpToSection: jumpToSection,
+        addTime: addTime,
+        subtractTime: subtractTime,
         // Help overlay methods
         toggleHelpOverlay: toggleHelpOverlay,
         showHelpOverlay: showHelpOverlay,

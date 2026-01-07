@@ -36,6 +36,10 @@
     <script src="scripts/progress-bar.js"></script>
     <script src="scripts/fullscreen.js"></script>
     <script src="scripts/keyboard-shortcuts.js"></script>
+    <script src="scripts/pause-controller.js"></script>
+    <script src="scripts/section-navigator.js"></script>
+    <script src="scripts/time-adjuster.js"></script>
+    <script src="scripts/controls-dimmer.js"></script>
     <script src="scripts/agenda-defender.js"></script>
 </head>
 
@@ -77,6 +81,21 @@
 <div id="ticker">
 </div>
 <div id="ticker-controls">
+    <div class="time-adjustment-buttons">
+        <button id="subtract-time-btn" class="time-adjust-btn subtract-time" aria-label="Subtract 30 seconds" title="Subtract 30 seconds (-)">
+            <span class="btn-icon">−</span><span class="btn-text">30s</span>
+        </button>
+        <button id="add-time-btn" class="time-adjust-btn add-time" aria-label="Add 30 seconds" title="Add 30 seconds (+)">
+            <span class="btn-icon">+</span><span class="btn-text">30s</span>
+        </button>
+    </div>
+    <button id="pause-button" aria-label="Pause/Resume timer" title="Pause/Resume timer (Space)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="7" y="4" width="3" height="16" rx="1.5"/>
+            <rect x="14" y="4" width="3" height="16" rx="1.5"/>
+        </svg>
+        <span class="button-text">Pause</span>
+    </button>
     <button id="keyboard-help-button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
