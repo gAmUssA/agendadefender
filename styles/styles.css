@@ -1660,3 +1660,130 @@ div#ticker[style*="block"] ~ #ticker-controls,
     user-select: none;
     -webkit-touch-callout: none;
 }
+
+
+/* ===========================================
+   Mute Toggle Button Styles
+   Requirements: 3.2, 3.6
+   =========================================== */
+
+/* Mute button base styling - consistent with other ticker control buttons */
+#mute-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-color);
+    font-size: 20px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    position: relative;
+}
+
+#mute-toggle:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#mute-toggle:active {
+    transform: translateY(0);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+#mute-toggle:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: 2px;
+}
+
+/* Icon visibility states */
+#mute-toggle .mute-icon-unmuted {
+    display: inline;
+}
+
+#mute-toggle .mute-icon-muted {
+    display: none;
+}
+
+/* Muted state styling */
+#mute-toggle.muted {
+    background: rgba(255, 59, 48, 0.15);
+    color: #FF3B30;
+}
+
+#mute-toggle.muted:hover {
+    background: rgba(255, 59, 48, 0.25);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+}
+
+#mute-toggle.muted:active {
+    background: rgba(255, 59, 48, 0.35);
+}
+
+#mute-toggle.muted .mute-icon-unmuted {
+    display: none;
+}
+
+#mute-toggle.muted .mute-icon-muted {
+    display: inline;
+}
+
+/* Dark theme adjustments for mute button */
+:root[data-theme="dark"] #mute-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+:root[data-theme="dark"] #mute-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] #mute-toggle.muted {
+    background: rgba(255, 69, 58, 0.2);
+    color: #FF453A;
+}
+
+:root[data-theme="dark"] #mute-toggle.muted:hover {
+    background: rgba(255, 69, 58, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 69, 58, 0.25);
+}
+
+/* System preference dark mode */
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="system"] #mute-toggle {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    
+    :root[data-theme="system"] #mute-toggle:hover {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+    
+    :root[data-theme="system"] #mute-toggle.muted {
+        background: rgba(255, 69, 58, 0.2);
+        color: #FF453A;
+    }
+    
+    :root[data-theme="system"] #mute-toggle.muted:hover {
+        background: rgba(255, 69, 58, 0.3);
+        box-shadow: 0 4px 12px rgba(255, 69, 58, 0.25);
+    }
+}
+
+/* Mobile adjustments for mute button */
+@media (max-width: 768px) {
+    #mute-toggle {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 18px;
+    }
+}

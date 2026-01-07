@@ -321,10 +321,16 @@ const KeyboardShortcuts = (function() {
      */
     function toggleMute() {
         log('toggleMute called');
-        timerState.isMuted = !timerState.isMuted;
         
         if (callbacks.onToggleMute) {
             callbacks.onToggleMute(timerState.isMuted);
+        }
+        
+        // Sync state with AudioManager if available
+        if (typeof AudioManager !== 'undefined') {
+            timerState.isMuted = AudioManager.getMuted();
+        } else {
+            timerState.isMuted = !timerState.isMuted;
         }
     }
 

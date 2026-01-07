@@ -169,6 +169,15 @@ function makeTicker(agenda) {
                 TimeWarnings.applyWarning(currentItem.progressBar[0], timeLeft);
             }
 
+            // Check and trigger audio/vibration alerts (Requirements: 1.1, 1.2, 1.3, 1.4)
+            // Only trigger alerts when not paused
+            // isOvertime is true when timeLeft <= 0 (past the section end time)
+            if (typeof AlertTrigger !== 'undefined' && 
+                (typeof PauseController === 'undefined' || !PauseController.isPaused())) {
+                const isOvertime = timeLeft <= 0;
+                AlertTrigger.checkAlerts(timeLeft, currentItemIndex, isOvertime);
+            }
+
             // Add pulsing effect when 5 seconds or less remaining, but only if not finished
             if (seconds <= 5 && minutes === 0 && timeLeft > 0) {
                 currentItem.element.addClass("pulse");
@@ -234,6 +243,19 @@ function runMeeting() {
     if (!agenda || agenda.length === 0) {
         console.error("No valid agenda items found");
         return;
+    }
+
+    // Initialize AudioManager after user interaction (Requirements: 5.1, 5.2)
+    // AudioContext must be created after user gesture to comply with browser autoplay policies
+    if (typeof AudioManager !== 'undefined') {
+        AudioManager.initialize();
+        console.log('🔊 AudioManager initialized');
+    }
+    
+    // Reset AlertTrigger state for new timer session
+    if (typeof AlertTrigger !== 'undefined') {
+        AlertTrigger.reset();
+        console.log('🔔 AlertTrigger reset');
     }
 
     // Store agenda globally for section jumping
@@ -345,6 +367,11 @@ function stopMeeting() {
     // Reset time adjuster state (Requirements: Integration)
     if (typeof TimeAdjuster !== 'undefined') {
         TimeAdjuster.reset();
+    }
+    
+    // Reset AlertTrigger state (Requirements: Integration)
+    if (typeof AlertTrigger !== 'undefined') {
+        AlertTrigger.reset();
     }
     
     // Clean up SectionNavigator (Requirements: Integration)
@@ -639,7 +666,10 @@ $(function () {
             },
             onToggleMute: function(isMuted) {
                 console.log('⌨️ Toggle mute:', isMuted);
-                // Audio mute toggle - future Phase 2 feature
+                // Wire to AudioManager (Requirements: 3.1)
+                if (typeof AudioManager !== 'undefined') {
+                    AudioManager.toggleMute();
+                }
             },
             onJumpToSection: function(index) {
                 console.log('⌨️ Jump to section: jumping to index', index);
@@ -712,6 +742,18 @@ $(function () {
             FullscreenManager.toggle();
         }
     });
+
+    // Wire up mute toggle button to AudioManager (Requirements: 3.2)
+    $("#mute-toggle").click(function() {
+        if (typeof AudioManager !== 'undefined') {
+            AudioManager.toggleMute();
+        }
+    });
+
+    // Initialize mute button state from saved preferences
+    if (typeof AudioManager !== 'undefined') {
+        AudioManager.loadPreferences();
+    }
 
     // Initialize FullscreenManager if available
     if (typeof FullscreenManager !== 'undefined') {

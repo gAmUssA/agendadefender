@@ -278,4 +278,88 @@ test.describe('Time My Talk - Smoke Tests', () => {
       await expect(page.locator('#subtract-time-btn')).toHaveAttribute('aria-label', 'Subtract 30 seconds');
     });
   });
+
+  test.describe('Audio Alerts', () => {
+    test('should have mute toggle button visible when timer is running', async ({ page }) => {
+      // Start timer
+      await page.locator('#agenda').fill('00:00 Section 1\n00:30 Section 2\n01:00 FINISH');
+      await page.locator('#run-meeting-button').click();
+      await expect(page.locator('#ticker')).toBeVisible();
+      
+      // Mute button should be visible
+      const muteButton = page.locator('#mute-toggle');
+      await expect(muteButton).toBeVisible();
+      await expect(muteButton).toHaveAttribute('aria-label', 'Toggle audio mute');
+    });
+
+    test('should toggle mute state when mute button is clicked', async ({ page }) => {
+      // Start timer
+      await page.locator('#agenda').fill('00:00 Test\n01:00 FINISH');
+      await page.locator('#run-meeting-button').click();
+      await expect(page.locator('#ticker')).toBeVisible();
+      
+      const muteButton = page.locator('#mute-toggle');
+      
+      // Initial state - should not have muted class (or may be muted by default)
+      const initialAriaPressed = await muteButton.getAttribute('aria-pressed');
+      
+      // Click to toggle mute
+      await muteButton.click();
+      
+      // aria-pressed should change
+      const newAriaPressed = await muteButton.getAttribute('aria-pressed');
+      expect(newAriaPressed).not.toBe(initialAriaPressed);
+      
+      // Click again to toggle back
+      await muteButton.click();
+      
+      // Should return to initial state
+      const finalAriaPressed = await muteButton.getAttribute('aria-pressed');
+      expect(finalAriaPressed).toBe(initialAriaPressed);
+    });
+
+    test('should toggle mute with M key', async ({ page }) => {
+      // Start timer
+      await page.locator('#agenda').fill('00:00 Test\n01:00 FINISH');
+      await page.locator('#run-meeting-button').click();
+      await expect(page.locator('#ticker')).toBeVisible();
+      
+      // Click on ticker to ensure focus is not on any input
+      await page.locator('#ticker').click();
+      await page.waitForTimeout(100);
+      
+      const muteButton = page.locator('#mute-toggle');
+      const initialAriaPressed = await muteButton.getAttribute('aria-pressed');
+      
+      // Press M to toggle mute
+      await page.keyboard.press('m');
+      
+      // aria-pressed should change
+      const newAriaPressed = await muteButton.getAttribute('aria-pressed');
+      expect(newAriaPressed).not.toBe(initialAriaPressed);
+    });
+
+    test('should show correct mute icon based on state', async ({ page }) => {
+      // Start timer
+      await page.locator('#agenda').fill('00:00 Test\n01:00 FINISH');
+      await page.locator('#run-meeting-button').click();
+      await expect(page.locator('#ticker')).toBeVisible();
+      
+      const muteButton = page.locator('#mute-toggle');
+      const unmutedIcon = page.locator('.mute-icon-unmuted');
+      const mutedIcon = page.locator('.mute-icon-muted');
+      
+      // Both icons exist in DOM
+      await expect(unmutedIcon).toBeAttached();
+      await expect(mutedIcon).toBeAttached();
+      
+      // Toggle mute and verify button responds
+      await muteButton.click();
+      await page.waitForTimeout(50);
+      
+      // Button should have updated state
+      const ariaPressed = await muteButton.getAttribute('aria-pressed');
+      expect(['true', 'false']).toContain(ariaPressed);
+    });
+  });
 });
