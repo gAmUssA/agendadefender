@@ -118,8 +118,17 @@
                 adjustmentState.totalAdjustments += deltaMs;
                 adjustmentState.lastAdjustmentTime = Date.now();
 
+                // Record adjustment in StateManager (Requirements: 7.4, 7.5)
+                if (typeof StateManager !== 'undefined') {
+                    StateManager.recordAdjustment(deltaMs);
+                }
+
                 // Update displays immediately (Requirements: 3.6, 3.7)
                 this._triggerDisplayUpdate();
+
+                // Check if adjustment caused timer to complete (Requirements: 7.5)
+                // This handles edge case of adjusting past end time
+                this._checkCompletionAfterAdjustment();
 
                 console.log('TimeAdjuster: Extended/shortened section', currentIndex, 'by', deltaSeconds, 'seconds');
                 return true;
@@ -202,6 +211,35 @@
             adjustmentState.lastAdjustmentTime = null;
             adjustmentLock = false;
             console.log('TimeAdjuster: State reset');
+        },
+
+        /**
+         * Check if timer should complete after adjustment
+         * Requirements: 7.5
+         * Handles edge case of adjusting past end time
+         * @private
+         */
+        _checkCompletionAfterAdjustment: function() {
+            const agenda = window.currentAgenda;
+            if (!agenda || agenda.length === 0) {
+                return;
+            }
+
+            const effectiveTime = this.getCurrentEffectiveTime();
+            const lastSection = agenda[agenda.length - 1];
+            
+            // Check if we've adjusted past the end of the last section
+            if (effectiveTime >= lastSection.concludesAt.getTime()) {
+                console.log('TimeAdjuster: Adjustment caused timer to reach end');
+                
+                // Mark completion in StateManager
+                if (typeof StateManager !== 'undefined') {
+                    StateManager.markCompleted();
+                }
+                
+                // Trigger normal completion - the ticker will handle this on next update
+                // We don't call stopMeeting directly to avoid race conditions
+            }
         },
 
         /**

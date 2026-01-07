@@ -926,9 +926,1001 @@ describe('Timer Controls', () => {
         });
     });
 
-    describe('TouchGestureHandler (Placeholder)', () => {
-        test('should be ready for implementation', () => {
-            expect(true).toBe(true); // Placeholder
+    describe('TouchGestureHandler', () => {
+        let TouchGestureHandler;
+
+        beforeEach(() => {
+            // Load the TouchGestureHandler module
+            TouchGestureHandler = require('../scripts/touch-gesture-handler.js');
+            
+            // Set up DOM for touch testing
+            document.body.innerHTML = `
+                <div id="ticker">
+                    <div class="timer-display">00:00</div>
+                    <div class="agenda-item">
+                        <span class="agenda-item-text">Test Item</span>
+                    </div>
+                    <div class="ticker-controls">
+                        <button id="pause-button" style="width: 44px; height: 44px;">Pause</button>
+                        <button id="next-section" style="width: 44px; height: 44px;">Next</button>
+                        <button id="prev-section" style="width: 44px; height: 44px;">Previous</button>
+                    </div>
+                </div>
+            `;
+
+            // Mock SectionNavigator
+            global.SectionNavigator = {
+                nextSection: jest.fn(() => true),
+                previousSection: jest.fn(() => true)
+            };
+
+            // Mock PauseController
+            global.PauseController = {
+                toggle: jest.fn(() => true),
+                isPaused: jest.fn(() => false)
+            };
+
+            // Mock navigator.vibrate
+            global.navigator.vibrate = jest.fn(() => true);
+        });
+
+        afterEach(() => {
+            TouchGestureHandler.destroy();
+            TouchGestureHandler.resetTouchState();
+            delete global.SectionNavigator;
+            delete global.PauseController;
+        });
+
+        describe('Initialization', () => {
+            test('should initialize successfully', () => {
+                TouchGestureHandler.initialize();
+                expect(TouchGestureHandler.isInitialized()).toBe(true);
+            });
+
+            test('should destroy successfully', () => {
+                TouchGestureHandler.initialize();
+                TouchGestureHandler.destroy();
+                expect(TouchGestureHandler.isInitialized()).toBe(false);
+            });
+        });
+
+        describe('Swipe Detection', () => {
+            test('should detect left swipe with sufficient distance', () => {
+                const result = TouchGestureHandler.detectSwipe(150, 50, 0, 200);
+                expect(result).toBe('left');
+            });
+
+            test('should detect right swipe with sufficient distance', () => {
+                const result = TouchGestureHandler.detectSwipe(50, 150, 0, 200);
+                expect(result).toBe('right');
+            });
+
+            test('should reject swipe with insufficient distance', () => {
+                const result = TouchGestureHandler.detectSwipe(50, 80, 0, 200);
+                expect(result).toBeNull();
+            });
+
+            test('should reject swipe that takes too long', () => {
+                const result = TouchGestureHandler.detectSwipe(50, 150, 0, 500);
+                expect(result).toBeNull();
+            });
+
+            test('should reject diagonal swipe', () => {
+                const result = TouchGestureHandler.detectSwipe(50, 150, 80, 200);
+                expect(result).toBeNull();
+            });
+        });
+
+        describe('Tap Detection', () => {
+            test('should detect tap with minimal movement', () => {
+                const result = TouchGestureHandler.isTap(5, 5, 100);
+                expect(result).toBe(true);
+            });
+
+            test('should reject tap with too much movement', () => {
+                const result = TouchGestureHandler.isTap(20, 20, 100);
+                expect(result).toBe(false);
+            });
+
+            test('should reject tap that takes too long', () => {
+                const result = TouchGestureHandler.isTap(5, 5, 300);
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('Tap-to-Pause Functionality', () => {
+            test('should toggle pause when tapping on timer display', () => {
+                TouchGestureHandler.initialize();
+                
+                // Get the timer display element (not an agenda item)
+                const timerDisplay = document.querySelector('.timer-display');
+                
+                // Simulate a tap on the timer display
+                TouchGestureHandler.handleTouchStart({
+                    touches: [{ clientX: 100, clientY: 100 }],
+                    target: timerDisplay
+                });
+                
+                // Simulate touch end with minimal movement (tap)
+                TouchGestureHandler.handleTouchEnd({
+                    changedTouches: [{ clientX: 102, clientY: 102 }]
+                });
+                
+                // PauseController.toggle should have been called
+                expect(global.PauseController.toggle).toHaveBeenCalled();
+            });
+
+            test('should not toggle pause when tapping outside timer area', () => {
+                TouchGestureHandler.initialize();
+                
+                // Create an element outside the timer area
+                const outsideElement = document.createElement('div');
+                outsideElement.id = 'outside';
+                document.body.appendChild(outsideElement);
+                
+                // Simulate a tap on the outside element
+                TouchGestureHandler.handleTouchStart({
+                    touches: [{ clientX: 100, clientY: 100 }],
+                    target: outsideElement
+                });
+                
+                // Simulate touch end with minimal movement (tap)
+                TouchGestureHandler.handleTouchEnd({
+                    changedTouches: [{ clientX: 102, clientY: 102 }]
+                });
+                
+                // PauseController.toggle should NOT have been called
+                expect(global.PauseController.toggle).not.toHaveBeenCalled();
+            });
+
+            test('should distinguish between taps and swipes', () => {
+                TouchGestureHandler.initialize();
+                
+                const timerDisplay = document.querySelector('.timer-display');
+                
+                // Simulate a swipe (large movement)
+                TouchGestureHandler.handleTouchStart({
+                    touches: [{ clientX: 50, clientY: 100 }],
+                    target: timerDisplay
+                });
+                
+                // Simulate touch end with large horizontal movement (swipe)
+                TouchGestureHandler.handleTouchEnd({
+                    changedTouches: [{ clientX: 150, clientY: 100 }]
+                });
+                
+                // PauseController.toggle should NOT have been called (it's a swipe, not a tap)
+                expect(global.PauseController.toggle).not.toHaveBeenCalled();
+                
+                // SectionNavigator.previousSection should have been called (right swipe)
+                expect(global.SectionNavigator.previousSection).toHaveBeenCalled();
+            });
+        });
+
+        describe('Tap-to-Jump Section Functionality', () => {
+            beforeEach(() => {
+                // Set up DOM with agenda items
+                document.body.innerHTML = `
+                    <div id="ticker">
+                        <div class="timer-display">00:00</div>
+                        <div class="agenda-item" data-section-index="0">
+                            <span class="agenda-item-text">Section 1</span>
+                        </div>
+                        <div class="agenda-item" data-section-index="1">
+                            <span class="agenda-item-text">Section 2</span>
+                        </div>
+                        <div class="agenda-item" data-section-index="2">
+                            <span class="agenda-item-text">Section 3</span>
+                        </div>
+                        <div class="section-list">
+                            <div class="section-item" data-section-index="0">Section 1</div>
+                            <div class="section-item" data-section-index="1">Section 2</div>
+                            <div class="section-item" data-section-index="2">Section 3</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Reset mocks
+                global.SectionNavigator.jumpToSection = jest.fn(() => true);
+            });
+
+            test('should jump to section when tapping on agenda item', () => {
+                TouchGestureHandler.initialize();
+                
+                const agendaItem = document.querySelector('.agenda-item[data-section-index="1"]');
+                
+                // Simulate a tap on the agenda item
+                TouchGestureHandler.handleTouchStart({
+                    touches: [{ clientX: 100, clientY: 100 }],
+                    target: agendaItem
+                });
+                
+                TouchGestureHandler.handleTouchEnd({
+                    changedTouches: [{ clientX: 102, clientY: 102 }]
+                });
+                
+                // SectionNavigator.jumpToSection should have been called with index 1
+                expect(global.SectionNavigator.jumpToSection).toHaveBeenCalledWith(1);
+                
+                // PauseController.toggle should NOT have been called
+                expect(global.PauseController.toggle).not.toHaveBeenCalled();
+            });
+
+            test('should jump to section when tapping on child element of agenda item', () => {
+                TouchGestureHandler.initialize();
+                
+                const agendaItemText = document.querySelector('.agenda-item[data-section-index="2"] .agenda-item-text');
+                
+                // Simulate a tap on the text inside the agenda item
+                TouchGestureHandler.handleTouchStart({
+                    touches: [{ clientX: 100, clientY: 100 }],
+                    target: agendaItemText
+                });
+                
+                TouchGestureHandler.handleTouchEnd({
+                    changedTouches: [{ clientX: 102, clientY: 102 }]
+                });
+                
+                // SectionNavigator.jumpToSection should have been called with index 2
+                expect(global.SectionNavigator.jumpToSection).toHaveBeenCalledWith(2);
+            });
+
+            test('should jump to section when tapping on section list item', () => {
+                TouchGestureHandler.initialize();
+                
+                const sectionItem = document.querySelector('.section-item[data-section-index="0"]');
+                
+                // Simulate a tap on the section list item
+                TouchGestureHandler.handleTouchStart({
+                    touches: [{ clientX: 100, clientY: 100 }],
+                    target: sectionItem
+                });
+                
+                TouchGestureHandler.handleTouchEnd({
+                    changedTouches: [{ clientX: 102, clientY: 102 }]
+                });
+                
+                // SectionNavigator.jumpToSection should have been called with index 0
+                expect(global.SectionNavigator.jumpToSection).toHaveBeenCalledWith(0);
+            });
+
+            test('should find agenda item from element correctly', () => {
+                const agendaItem = document.querySelector('.agenda-item[data-section-index="1"]');
+                const childElement = agendaItem.querySelector('.agenda-item-text');
+                
+                // Should find agenda item from the item itself
+                expect(TouchGestureHandler.findAgendaItemFromElement(agendaItem)).toBe(agendaItem);
+                
+                // Should find agenda item from child element
+                expect(TouchGestureHandler.findAgendaItemFromElement(childElement)).toBe(agendaItem);
+                
+                // Should return null for non-agenda elements
+                const timerDisplay = document.querySelector('.timer-display');
+                expect(TouchGestureHandler.findAgendaItemFromElement(timerDisplay)).toBeNull();
+            });
+
+            test('should find section index from agenda item', () => {
+                const agendaItem0 = document.querySelector('.agenda-item[data-section-index="0"]');
+                const agendaItem1 = document.querySelector('.agenda-item[data-section-index="1"]');
+                const agendaItem2 = document.querySelector('.agenda-item[data-section-index="2"]');
+                
+                expect(TouchGestureHandler.findSectionIndexFromAgendaItem(agendaItem0)).toBe(0);
+                expect(TouchGestureHandler.findSectionIndexFromAgendaItem(agendaItem1)).toBe(1);
+                expect(TouchGestureHandler.findSectionIndexFromAgendaItem(agendaItem2)).toBe(2);
+            });
+        });
+        describe('Swipe Handling', () => {
+            test('should call SectionNavigator.nextSection on left swipe', () => {
+                TouchGestureHandler.handleSwipe('left');
+                expect(global.SectionNavigator.nextSection).toHaveBeenCalled();
+            });
+
+            test('should call SectionNavigator.previousSection on right swipe', () => {
+                TouchGestureHandler.handleSwipe('right');
+                expect(global.SectionNavigator.previousSection).toHaveBeenCalled();
+            });
+        });
+
+        describe('Multi-touch Prevention', () => {
+            test('should ignore multi-touch gestures', () => {
+                TouchGestureHandler.initialize();
+                
+                // Simulate multi-touch start
+                const multiTouchStart = new TouchEvent('touchstart', {
+                    touches: [
+                        { clientX: 50, clientY: 100 },
+                        { clientX: 100, clientY: 100 }
+                    ]
+                });
+                
+                TouchGestureHandler.handleTouchStart(multiTouchStart);
+                
+                // Touch state should not be tracking
+                const state = TouchGestureHandler.getTouchState();
+                expect(state.isTracking).toBe(false);
+            });
+        });
+
+        describe('Touch Target Accessibility', () => {
+            test('should validate touch target size correctly', () => {
+                const button = document.getElementById('pause-button');
+                // Mock getBoundingClientRect
+                button.getBoundingClientRect = jest.fn(() => ({
+                    width: 44,
+                    height: 44
+                }));
+                
+                const result = TouchGestureHandler.checkTouchTargetSize(button);
+                expect(result).toBe(true);
+            });
+
+            test('should fail validation for small touch targets', () => {
+                const button = document.getElementById('pause-button');
+                // Mock getBoundingClientRect with small size
+                button.getBoundingClientRect = jest.fn(() => ({
+                    width: 30,
+                    height: 30
+                }));
+                
+                const result = TouchGestureHandler.checkTouchTargetSize(button);
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('Haptic Feedback', () => {
+            test('should call navigator.vibrate when available', () => {
+                TouchGestureHandler.provideHapticFeedback();
+                expect(global.navigator.vibrate).toHaveBeenCalledWith(50);
+            });
+        });
+
+        describe('Property-Based Tests', () => {
+            test('Property 6: Touch gesture distance validation', () => {
+                /**
+                 * Feature: timer-controls, Property 6: Touch gesture distance validation
+                 * Validates: Requirements 6.1, 6.2, 6.6, 6.7
+                 * 
+                 * For any swipe gesture, only swipes with distance >= 50px should trigger
+                 * navigation, and multi-touch should be ignored.
+                 */
+                fc.assert(fc.property(
+                    fc.integer({ min: 0, max: 200 }),  // Random start X
+                    fc.integer({ min: 0, max: 200 }),  // Random end X
+                    fc.integer({ min: 0, max: 100 }),  // Random vertical movement
+                    fc.integer({ min: 50, max: 400 }), // Random duration
+                    (startX, endX, deltaY, duration) => {
+                        const distance = Math.abs(endX - startX);
+                        const minSwipeDistance = TouchGestureHandler.getConfig('MIN_SWIPE_DISTANCE');
+                        const swipeTimeout = TouchGestureHandler.getConfig('SWIPE_TIMEOUT');
+                        
+                        const result = TouchGestureHandler.detectSwipe(startX, endX, deltaY, duration);
+                        
+                        // If distance is less than minimum, result should be null
+                        if (distance < minSwipeDistance) {
+                            expect(result).toBeNull();
+                            return;
+                        }
+                        
+                        // If duration exceeds timeout, result should be null
+                        if (duration > swipeTimeout) {
+                            expect(result).toBeNull();
+                            return;
+                        }
+                        
+                        // If vertical movement is too large (diagonal), result should be null
+                        if (Math.abs(deltaY) > distance / 2) {
+                            expect(result).toBeNull();
+                            return;
+                        }
+                        
+                        // Otherwise, should detect valid swipe direction
+                        if (endX > startX) {
+                            expect(result).toBe('right');
+                        } else {
+                            expect(result).toBe('left');
+                        }
+                    }
+                ), { numRuns: 100 });
+            });
+
+            test('Property 7: Touch target accessibility', () => {
+                /**
+                 * Feature: timer-controls, Property 7: Touch target accessibility
+                 * Validates: Requirements 6.5
+                 * 
+                 * For any interactive element on mobile, the touch target should be
+                 * at least 44x44px for accessibility compliance.
+                 */
+                fc.assert(fc.property(
+                    fc.integer({ min: 20, max: 100 }),  // Random width
+                    fc.integer({ min: 20, max: 100 }),  // Random height
+                    (width, height) => {
+                        // Create a test element with random dimensions
+                        const testElement = document.createElement('button');
+                        testElement.id = 'test-touch-target';
+                        testElement.style.width = `${width}px`;
+                        testElement.style.height = `${height}px`;
+                        document.body.appendChild(testElement);
+                        
+                        // Mock getBoundingClientRect to return the specified dimensions
+                        testElement.getBoundingClientRect = jest.fn(() => ({
+                            width: width,
+                            height: height
+                        }));
+                        
+                        const minTouchTarget = TouchGestureHandler.getConfig('MIN_TOUCH_TARGET');
+                        const result = TouchGestureHandler.checkTouchTargetSize(testElement);
+                        
+                        // Verify: element passes if both dimensions >= 44px
+                        const expectedResult = width >= minTouchTarget && height >= minTouchTarget;
+                        expect(result).toBe(expectedResult);
+                        
+                        // Clean up
+                        testElement.remove();
+                    }
+                ), { numRuns: 100 });
+            });
+        });
+    });
+
+    describe('KeyboardShortcuts', () => {
+        let KeyboardShortcuts;
+
+        beforeEach(() => {
+            // Load the KeyboardShortcuts module
+            KeyboardShortcuts = require('../scripts/keyboard-shortcuts.js');
+            
+            // Set up DOM with input fields for testing
+            document.body.innerHTML = `
+                <div id="ticker">
+                    <div class="timer-display">00:00</div>
+                </div>
+                <input type="text" id="test-input" />
+                <textarea id="test-textarea"></textarea>
+                <div id="regular-div">Regular content</div>
+            `;
+
+            // Initialize KeyboardShortcuts
+            KeyboardShortcuts.initialize();
+            KeyboardShortcuts.setEnabled(true);
+        });
+
+        afterEach(() => {
+            KeyboardShortcuts.destroy();
+        });
+
+        describe('Input Field Handling', () => {
+            test('should ignore shortcuts when focus is on INPUT element', () => {
+                const input = document.getElementById('test-input');
+                
+                // Create a mock event targeting the input
+                const event = {
+                    target: input,
+                    tagName: 'INPUT',
+                    code: 'Space',
+                    key: ' ',
+                    ctrlKey: false,
+                    altKey: false,
+                    metaKey: false,
+                    isComposing: false,
+                    preventDefault: jest.fn()
+                };
+                
+                const result = KeyboardShortcuts.shouldIgnoreEvent(event);
+                expect(result).toBe(true);
+            });
+
+            test('should ignore shortcuts when focus is on TEXTAREA element', () => {
+                const textarea = document.getElementById('test-textarea');
+                
+                // Create a mock event targeting the textarea
+                const event = {
+                    target: textarea,
+                    tagName: 'TEXTAREA',
+                    code: 'KeyR',
+                    key: 'r',
+                    ctrlKey: false,
+                    altKey: false,
+                    metaKey: false,
+                    isComposing: false,
+                    preventDefault: jest.fn()
+                };
+                
+                const result = KeyboardShortcuts.shouldIgnoreEvent(event);
+                expect(result).toBe(true);
+            });
+
+            test('should process shortcuts when focus is on regular elements', () => {
+                const div = document.getElementById('regular-div');
+                
+                // Create a mock event targeting a regular div
+                const event = {
+                    target: div,
+                    tagName: 'DIV',
+                    code: 'Space',
+                    key: ' ',
+                    ctrlKey: false,
+                    altKey: false,
+                    metaKey: false,
+                    isComposing: false,
+                    preventDefault: jest.fn()
+                };
+                
+                const result = KeyboardShortcuts.shouldIgnoreEvent(event);
+                expect(result).toBe(false);
+            });
+
+            test('should ignore shortcuts when modifier keys are pressed', () => {
+                const div = document.getElementById('regular-div');
+                
+                // Test with Ctrl key
+                const ctrlEvent = {
+                    target: div,
+                    tagName: 'DIV',
+                    code: 'Space',
+                    key: ' ',
+                    ctrlKey: true,
+                    altKey: false,
+                    metaKey: false,
+                    isComposing: false,
+                    preventDefault: jest.fn()
+                };
+                
+                expect(KeyboardShortcuts.shouldIgnoreEvent(ctrlEvent)).toBe(true);
+                
+                // Test with Alt key
+                const altEvent = {
+                    target: div,
+                    tagName: 'DIV',
+                    code: 'Space',
+                    key: ' ',
+                    ctrlKey: false,
+                    altKey: true,
+                    metaKey: false,
+                    isComposing: false,
+                    preventDefault: jest.fn()
+                };
+                
+                expect(KeyboardShortcuts.shouldIgnoreEvent(altEvent)).toBe(true);
+                
+                // Test with Meta key (Cmd on Mac)
+                const metaEvent = {
+                    target: div,
+                    tagName: 'DIV',
+                    code: 'Space',
+                    key: ' ',
+                    ctrlKey: false,
+                    altKey: false,
+                    metaKey: true,
+                    isComposing: false,
+                    preventDefault: jest.fn()
+                };
+                
+                expect(KeyboardShortcuts.shouldIgnoreEvent(metaEvent)).toBe(true);
+            });
+
+            test('should ignore shortcuts during IME composition', () => {
+                const div = document.getElementById('regular-div');
+                
+                const event = {
+                    target: div,
+                    tagName: 'DIV',
+                    code: 'Space',
+                    key: ' ',
+                    ctrlKey: false,
+                    altKey: false,
+                    metaKey: false,
+                    isComposing: true,
+                    preventDefault: jest.fn()
+                };
+                
+                const result = KeyboardShortcuts.shouldIgnoreEvent(event);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('Reset Functionality', () => {
+            test('should call onReset callback when R key is pressed', () => {
+                const resetCallback = jest.fn();
+                
+                KeyboardShortcuts.setCallbacks({
+                    onReset: resetCallback
+                });
+                
+                // Call resetTimer directly
+                KeyboardShortcuts.resetTimer();
+                
+                expect(resetCallback).toHaveBeenCalled();
+            });
+
+            test('should reset timer state when resetTimer is called', () => {
+                // Set up initial state
+                KeyboardShortcuts.updateTimerState({
+                    isRunning: true,
+                    currentSectionIndex: 3,
+                    totalSections: 5
+                });
+                
+                // Call resetTimer
+                KeyboardShortcuts.resetTimer();
+                
+                // Verify state is reset
+                const state = KeyboardShortcuts.getTimerState();
+                expect(state.currentSectionIndex).toBe(0);
+                expect(state.isRunning).toBe(false);
+            });
+        });
+
+        describe('Property-Based Tests', () => {
+            test('Property 9: Keyboard shortcut input field handling', () => {
+                /**
+                 * Feature: timer-controls, Property 9: Keyboard shortcut input field handling
+                 * Validates: Requirements 5.8
+                 * 
+                 * For any keyboard shortcut pressed while focus is on input fields,
+                 * the shortcut should be ignored.
+                 */
+                fc.assert(fc.property(
+                    fc.constantFrom('INPUT', 'TEXTAREA', 'DIV', 'BUTTON', 'SPAN', 'P'),  // Random element types
+                    fc.constantFrom('Space', 'KeyR', 'KeyN', 'KeyP', 'KeyF', 'KeyM', 'ArrowLeft', 'ArrowRight', 'Equal', 'Minus'),  // Random shortcut keys
+                    fc.boolean(),  // Random ctrl key state
+                    fc.boolean(),  // Random alt key state
+                    fc.boolean(),  // Random meta key state
+                    fc.boolean(),  // Random isComposing state
+                    (tagName, keyCode, ctrlKey, altKey, metaKey, isComposing) => {
+                        // Create a mock element
+                        const element = document.createElement(tagName.toLowerCase());
+                        element.id = 'test-element-' + Math.random();
+                        document.body.appendChild(element);
+                        
+                        // Create a mock event
+                        const event = {
+                            target: element,
+                            tagName: tagName,
+                            code: keyCode,
+                            key: keyCode,
+                            ctrlKey: ctrlKey,
+                            altKey: altKey,
+                            metaKey: metaKey,
+                            isComposing: isComposing,
+                            preventDefault: jest.fn()
+                        };
+                        
+                        const result = KeyboardShortcuts.shouldIgnoreEvent(event);
+                        
+                        // Determine expected result based on conditions
+                        const isInputField = tagName === 'INPUT' || tagName === 'TEXTAREA';
+                        const hasModifier = ctrlKey || altKey || metaKey;
+                        const shouldIgnore = isInputField || hasModifier || isComposing || !KeyboardShortcuts.isEnabled();
+                        
+                        // Verify: shortcuts should be ignored when:
+                        // 1. Focus is on INPUT or TEXTAREA (Requirements 5.8)
+                        // 2. Modifier keys are pressed
+                        // 3. IME composition is in progress
+                        // 4. Shortcuts are disabled
+                        expect(result).toBe(shouldIgnore);
+                        
+                        // Clean up
+                        element.remove();
+                    }
+                ), { numRuns: 100 });
+            });
+        });
+    });
+
+    describe('StateManager', () => {
+        let StateManager;
+
+        beforeEach(() => {
+            // Load the StateManager module
+            StateManager = require('../scripts/state-manager.js');
+            
+            // Set up global timer state
+            global.window = global.window || {};
+            global.window.running = true;
+            global.window.timeOffset = 0;
+            
+            // Reset StateManager
+            StateManager.reset();
+        });
+
+        afterEach(() => {
+            StateManager.reset();
+        });
+
+        describe('State Management', () => {
+            test('should initialize with correct default state', () => {
+                const state = StateManager.getState();
+                expect(state.isRunning).toBe(false);
+                expect(state.isPaused).toBe(false);
+                expect(state.currentSectionIndex).toBe(0);
+                expect(state.totalSections).toBe(0);
+                expect(state.totalPausedDuration).toBe(0);
+            });
+
+            test('should update state successfully with valid updates', () => {
+                const result = StateManager.updateState({
+                    isRunning: true,
+                    totalSections: 5
+                });
+                
+                expect(result).toBe(true);
+                const state = StateManager.getState();
+                expect(state.isRunning).toBe(true);
+                expect(state.totalSections).toBe(5);
+            });
+
+            test('should reject invalid state updates', () => {
+                // Try to set isPaused=true when isRunning=false (invalid)
+                const result = StateManager.updateState({
+                    isPaused: true,
+                    isRunning: false
+                });
+                
+                expect(result).toBe(false);
+            });
+
+            test('should initialize from timer correctly', () => {
+                const mockAgenda = [
+                    { text: 'Section 1' },
+                    { text: 'Section 2' },
+                    { text: 'Section 3' }
+                ];
+                
+                StateManager.initializeFromTimer(mockAgenda);
+                
+                const state = StateManager.getState();
+                expect(state.isRunning).toBe(true);
+                expect(state.totalSections).toBe(3);
+                expect(state.currentSectionIndex).toBe(0);
+                expect(state.completionTriggered).toBe(false);
+            });
+        });
+
+        describe('State Validation', () => {
+            test('should validate pause requires running', () => {
+                const invalidState = {
+                    isRunning: false,
+                    isPaused: true,
+                    currentSectionIndex: 0,
+                    totalSections: 0,
+                    pausedAt: null,
+                    totalPausedDuration: 0
+                };
+                
+                const result = StateManager.validateState(invalidState);
+                expect(result.valid).toBe(false);
+            });
+
+            test('should validate section index in bounds', () => {
+                const invalidState = {
+                    isRunning: true,
+                    isPaused: false,
+                    currentSectionIndex: 10,
+                    totalSections: 5,
+                    pausedAt: null,
+                    totalPausedDuration: 0
+                };
+                
+                const result = StateManager.validateState(invalidState);
+                expect(result.valid).toBe(false);
+            });
+
+            test('should validate pausedAt consistency', () => {
+                const invalidState = {
+                    isRunning: true,
+                    isPaused: true,
+                    currentSectionIndex: 0,
+                    totalSections: 5,
+                    pausedAt: null, // Should be set when isPaused is true
+                    totalPausedDuration: 0
+                };
+                
+                const result = StateManager.validateState(invalidState);
+                expect(result.valid).toBe(false);
+            });
+
+            test('should validate totalPausedDuration non-negative', () => {
+                const invalidState = {
+                    isRunning: true,
+                    isPaused: false,
+                    currentSectionIndex: 0,
+                    totalSections: 5,
+                    pausedAt: null,
+                    totalPausedDuration: -100
+                };
+                
+                const result = StateManager.validateState(invalidState);
+                expect(result.valid).toBe(false);
+            });
+
+            test('should accept valid state', () => {
+                const validState = {
+                    isRunning: true,
+                    isPaused: false,
+                    currentSectionIndex: 2,
+                    totalSections: 5,
+                    pausedAt: null,
+                    totalPausedDuration: 1000
+                };
+                
+                const result = StateManager.validateState(validState);
+                expect(result.valid).toBe(true);
+            });
+        });
+
+        describe('Completion Handling', () => {
+            test('should mark completion correctly', () => {
+                StateManager.initializeFromTimer([{ text: 'Section 1' }]);
+                expect(StateManager.isCompleted()).toBe(false);
+                
+                StateManager.markCompleted();
+                expect(StateManager.isCompleted()).toBe(true);
+            });
+
+            test('should reset completion on reset', () => {
+                StateManager.initializeFromTimer([{ text: 'Section 1' }]);
+                StateManager.markCompleted();
+                expect(StateManager.isCompleted()).toBe(true);
+                
+                StateManager.reset();
+                expect(StateManager.isCompleted()).toBe(false);
+            });
+        });
+
+        describe('Operation Locking', () => {
+            test('should track operation lock state', () => {
+                expect(StateManager.isOperationLocked()).toBe(false);
+            });
+
+            test('should execute operation with lock', () => {
+                let executed = false;
+                const result = StateManager.executeWithLock(() => {
+                    executed = true;
+                    return 'success';
+                });
+                
+                expect(executed).toBe(true);
+                expect(result).toBe('success');
+            });
+        });
+
+        describe('State Listeners', () => {
+            test('should notify listeners on state change', () => {
+                const listener = jest.fn();
+                StateManager.addListener(listener);
+                
+                StateManager.updateState({ isRunning: true, totalSections: 3 });
+                
+                expect(listener).toHaveBeenCalled();
+                expect(listener).toHaveBeenCalledWith(
+                    expect.objectContaining({ isRunning: false }),
+                    expect.objectContaining({ isRunning: true })
+                );
+            });
+
+            test('should remove listeners correctly', () => {
+                const listener = jest.fn();
+                StateManager.addListener(listener);
+                StateManager.removeListener(listener);
+                
+                StateManager.updateState({ isRunning: true, totalSections: 3 });
+                
+                expect(listener).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('Property-Based Tests', () => {
+            test('Property 8: State preservation during operations', () => {
+                /**
+                 * Feature: timer-controls, Property 8: State preservation during operations
+                 * Validates: Requirements 7.1, 7.4
+                 * 
+                 * For any timer control operation (pause, navigation, adjustment),
+                 * the running/paused state should be preserved and all UI components
+                 * should remain consistent.
+                 */
+                fc.assert(fc.property(
+                    fc.boolean(),                        // Random isRunning state
+                    fc.boolean(),                        // Random isPaused state
+                    fc.integer({ min: 0, max: 10 }),     // Random currentSectionIndex
+                    fc.integer({ min: 1, max: 20 }),     // Random totalSections
+                    fc.integer({ min: 0, max: 10000 }),  // Random totalPausedDuration
+                    fc.constantFrom('pause', 'resume', 'navigate', 'adjust'), // Random operation type
+                    (isRunning, isPaused, currentSectionIndex, totalSections, totalPausedDuration, operationType) => {
+                        // Reset state
+                        StateManager.reset();
+                        
+                        // Ensure valid state combinations
+                        // isPaused can only be true if isRunning is true
+                        const validIsPaused = isRunning ? isPaused : false;
+                        // currentSectionIndex must be within bounds
+                        const validSectionIndex = Math.min(currentSectionIndex, totalSections - 1);
+                        // pausedAt should be set when isPaused is true
+                        const pausedAt = validIsPaused ? Date.now() : null;
+                        
+                        // Set up initial state
+                        const initialState = {
+                            isRunning: isRunning,
+                            isPaused: validIsPaused,
+                            currentSectionIndex: validSectionIndex,
+                            totalSections: totalSections,
+                            pausedAt: pausedAt,
+                            totalPausedDuration: totalPausedDuration,
+                            completionTriggered: false
+                        };
+                        
+                        // Validate initial state is valid
+                        const initialValidation = StateManager.validateState(initialState);
+                        if (!initialValidation.valid) {
+                            // Skip invalid initial states
+                            return;
+                        }
+                        
+                        // Apply initial state
+                        StateManager.updateState(initialState);
+                        
+                        // Perform operation based on type
+                        let newState;
+                        switch (operationType) {
+                            case 'pause':
+                                if (isRunning && !validIsPaused) {
+                                    StateManager.updateState({
+                                        isPaused: true,
+                                        pausedAt: Date.now()
+                                    });
+                                }
+                                break;
+                            case 'resume':
+                                if (validIsPaused) {
+                                    StateManager.updateState({
+                                        isPaused: false,
+                                        pausedAt: null,
+                                        totalPausedDuration: totalPausedDuration + 100
+                                    });
+                                }
+                                break;
+                            case 'navigate':
+                                const newIndex = (validSectionIndex + 1) % totalSections;
+                                StateManager.setCurrentSection(newIndex);
+                                break;
+                            case 'adjust':
+                                StateManager.recordAdjustment(30000);
+                                break;
+                        }
+                        
+                        // Get final state
+                        newState = StateManager.getState();
+                        
+                        // Verify state consistency
+                        const finalValidation = StateManager.validateState(newState);
+                        expect(finalValidation.valid).toBe(true);
+                        
+                        // Verify key invariants are preserved
+                        // 1. totalSections should not change during operations
+                        expect(newState.totalSections).toBe(totalSections);
+                        
+                        // 2. If isPaused is true, isRunning must be true
+                        if (newState.isPaused) {
+                            expect(newState.isRunning).toBe(true);
+                        }
+                        
+                        // 3. currentSectionIndex should be within bounds
+                        expect(newState.currentSectionIndex).toBeGreaterThanOrEqual(0);
+                        expect(newState.currentSectionIndex).toBeLessThan(newState.totalSections);
+                        
+                        // 4. totalPausedDuration should be non-negative
+                        expect(newState.totalPausedDuration).toBeGreaterThanOrEqual(0);
+                        
+                        // 5. pausedAt consistency
+                        if (newState.isPaused) {
+                            expect(newState.pausedAt).not.toBeNull();
+                        } else {
+                            expect(newState.pausedAt).toBeNull();
+                        }
+                    }
+                ), { numRuns: 100 });
+            });
         });
     });
 });

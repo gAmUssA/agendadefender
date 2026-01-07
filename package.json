@@ -10,7 +10,10 @@
     "rebuild": "npm run clean && npm run build",
     "version": "git add -A",
     "postversion": "git push && git push --tags",
-    "test": "node --no-deprecation ./node_modules/.bin/jest --colors"
+    "test": "node --no-deprecation ./node_modules/.bin/jest --colors",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "test:all": "npm test && npm run test:e2e"
   },
   "repository": {
     "type": "git",
@@ -22,6 +25,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "electron": "^28.1.0",
     "electron-builder": "^24.9.1",
     "fast-check": "^4.5.3",
@@ -33,6 +37,10 @@
     "testEnvironment": "jest-environment-jsdom",
     "setupFiles": [
       "./tests/setup.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/tests/e2e/"
     ],
     "testEnvironmentOptions": {
       "customExportConditions": [

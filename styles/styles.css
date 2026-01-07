@@ -1537,3 +1537,126 @@ div#ticker[style*="block"] ~ #ticker-controls,
         font-size: 12px;
     }
 }
+
+/* ===========================================
+   Touch Gesture Feedback Styles
+   Requirements: 6.4, 6.5
+   =========================================== */
+
+/* Touch feedback animation for swipes and taps */
+.touch-feedback {
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+}
+
+.touch-feedback-left {
+    animation: swipeLeftFeedback 0.2s ease-out;
+}
+
+.touch-feedback-right {
+    animation: swipeRightFeedback 0.2s ease-out;
+}
+
+.touch-feedback-tap {
+    animation: tapFeedback 0.15s ease-out;
+}
+
+@keyframes swipeLeftFeedback {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-10px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes swipeRightFeedback {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(10px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes tapFeedback {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mobile touch target minimum size (44x44px for accessibility) */
+@media (max-width: 768px) {
+    /* Ensure all interactive elements meet minimum touch target size */
+    #ticker-controls button,
+    #ticker-controls a,
+    .section-item,
+    .time-adjust-btn,
+    .clickable {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* Section list items need adequate touch targets */
+    .section-item {
+        padding: 12px 16px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Touch-friendly spacing for controls */
+    #ticker-controls {
+        gap: 8px;
+    }
+    
+    /* Larger tap area for timer display (tap-to-pause) */
+    #ticker {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Visual feedback for active touch state */
+    #ticker:active {
+        opacity: 0.95;
+    }
+    
+    button:active,
+    .section-item:active,
+    .time-adjust-btn:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+    }
+}
+
+/* Disable text selection on touch targets to prevent accidental selection */
+#ticker,
+#ticker-controls button,
+.section-item,
+.time-adjust-btn {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}

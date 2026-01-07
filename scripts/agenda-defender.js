@@ -149,6 +149,11 @@ function makeTicker(agenda) {
                 SectionNavigator.highlightCurrentSection();
             }
 
+            // Update StateManager with current section (Requirements: 7.1)
+            if (typeof StateManager !== 'undefined') {
+                StateManager.setCurrentSection(currentItemIndex);
+            }
+
             // Update item text with subsecond precision for smoother countdown
             let timeString = minutes + ":" +
                 (seconds < 10 ? "0" : "") + seconds;
@@ -203,7 +208,17 @@ function makeTicker(agenda) {
             // Also reset current item's finished state (in case we jumped back to it)
             currentItem.element.removeClass("finished");
         } else {
-            // All items finished
+            // All items finished - handle completion (Requirements: 7.5)
+            // Check if completion was already triggered to prevent duplicate calls
+            if (typeof StateManager !== 'undefined' && StateManager.isCompleted()) {
+                return; // Already completed, skip
+            }
+            
+            // Mark as completed before triggering stop
+            if (typeof StateManager !== 'undefined') {
+                StateManager.markCompleted();
+            }
+            
             $("#ticker").find(".agenda-item").addClass("finished").removeClass("pulse");
             $("#ticker").find(".progress-bar").css("width", "100%");
             agenda.forEach(item => lastProgress[item.text] = 100);
@@ -239,6 +254,12 @@ function runMeeting() {
         console.log('⌨️ Timer state updated: totalSections =', agenda.length);
     }
 
+    // Initialize StateManager with timer state (Requirements: 7.1, 7.4)
+    if (typeof StateManager !== 'undefined') {
+        StateManager.initializeFromTimer(agenda);
+        console.log('📊 StateManager initialized with', agenda.length, 'sections');
+    }
+
     // Hide theme toggle button when entering meeting mode
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
@@ -272,6 +293,11 @@ function runMeeting() {
     // Start auto-dim timer for controls
     if (typeof ControlsDimmer !== 'undefined') {
         ControlsDimmer.startDimming();
+    }
+    
+    // Initialize touch gesture handler for mobile support (Requirements: 6.1-6.7)
+    if (typeof TouchGestureHandler !== 'undefined') {
+        TouchGestureHandler.initialize();
     }
     
     window.ticker = window.setInterval(tickerUpdate, 50); // Update more frequently for smoother animation
@@ -324,6 +350,16 @@ function stopMeeting() {
     // Clean up SectionNavigator (Requirements: Integration)
     if (typeof SectionNavigator !== 'undefined') {
         SectionNavigator.destroy();
+    }
+    
+    // Clean up TouchGestureHandler (Requirements: Integration)
+    if (typeof TouchGestureHandler !== 'undefined') {
+        TouchGestureHandler.destroy();
+    }
+
+    // Reset StateManager state (Requirements: 7.1, 7.4)
+    if (typeof StateManager !== 'undefined') {
+        StateManager.reset();
     }
 
     // Update keyboard shortcuts timer state
@@ -544,11 +580,44 @@ $(function () {
             },
             onReset: function() {
                 console.log('⌨️ Reset timer');
-                // Stop the meeting and reset to beginning
-                if (window.running) {
-                    stopMeeting();
+                // Reset timer to beginning (0:00) while keeping it running (Requirements: 5.2)
+                if (window.running && currentAgenda && currentAgenda.length > 0) {
+                    // Reset to the start of the first section
+                    const firstSection = currentAgenda[0];
+                    const firstSectionStart = firstSection.commencesAt.getTime();
+                    
+                    // Calculate new offset to make "now" appear at the start of first section
+                    timeOffset = firstSectionStart - Date.now() + 100;
+                    
+                    // Reset pause state and clear accumulated paused time (Requirements: 5.2)
+                    if (typeof PauseController !== 'undefined') {
+                        PauseController.reset();
+                    }
+                    
+                    // Reset time adjuster state
+                    if (typeof TimeAdjuster !== 'undefined') {
+                        TimeAdjuster.reset();
+                    }
+                    
+                    // Reset section navigation to first section (Requirements: 5.2)
+                    if (typeof SectionNavigator !== 'undefined') {
+                        SectionNavigator.highlightCurrentSection();
+                        SectionNavigator.scrollToCurrentSection();
+                    }
+                    
+                    // Update keyboard shortcuts state
+                    if (typeof KeyboardShortcuts !== 'undefined') {
+                        KeyboardShortcuts.updateTimerState({
+                            currentSectionIndex: 0,
+                            isPaused: false
+                        });
+                    }
+                    
+                    console.log('⌨️ Timer reset to beginning (0:00)');
+                } else if (!window.running) {
+                    // If timer is not running, just log
+                    console.log('⌨️ Timer not running, nothing to reset');
                 }
-                // Reset is handled by stopping - user can start again
             },
             onNextSection: function(index) {
                 console.log('⌨️ Next section: jumping to index', index);
