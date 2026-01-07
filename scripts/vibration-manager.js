@@ -4,8 +4,20 @@
  * Handles haptic feedback for mobile devices using the Navigator.vibrate() API.
  * Provides vibration notifications for timer events with graceful fallback.
  * 
+ * BROWSER SUPPORT NOTE:
+ * The Vibration API has LIMITED browser support:
+ * - Safari (macOS & iOS): NOT SUPPORTED
+ * - Firefox (desktop v129+): NOT SUPPORTED (removed)
+ * - Chrome/Brave (desktop): API exists but no vibration hardware
+ * - Chrome for Android: SUPPORTED
+ * - Samsung Internet: SUPPORTED
+ * - Opera Mobile: SUPPORTED
+ * 
+ * This module gracefully falls back to no-op when vibration is unavailable.
+ * 
  * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6
  * @see .kiro/specs/audio-alerts/design.md
+ * @see https://caniuse.com/mdn-api_navigator_vibrate
  */
 
 const VibrationManager = (function() {
@@ -19,13 +31,29 @@ const VibrationManager = (function() {
         OVERTIME: [200, 100, 200, 100, 200]       // Urgent pattern (overtime)
     };
 
+    // Track if we've logged the support status
+    let supportLogged = false;
+
     /**
      * Check if vibration is supported
+     * Note: Even if the API exists, it may not work on devices without vibration hardware
+     * or on browsers that have removed support (Firefox 129+)
      * Requirements: 4.5
      * @returns {boolean} Whether Navigator.vibrate() is available
      */
     function isSupported() {
-        return 'vibrate' in navigator;
+        const supported = typeof navigator !== 'undefined' && 'vibrate' in navigator;
+        
+        // Log support status once for debugging
+        if (!supportLogged && typeof console !== 'undefined') {
+            supportLogged = true;
+            if (!supported) {
+                console.info('VibrationManager: Vibration API not available in this browser. ' +
+                    'Haptic feedback will be disabled. This is expected on Safari, iOS, and Firefox 129+.');
+            }
+        }
+        
+        return supported;
     }
 
     /**
